@@ -22,7 +22,7 @@ git pull
 그 다음 해당 차시 폴더로 이동합니다.
 
 ```bash
-cd sessions/01-architecture-blueprint
+cd sessions/1차시
 ```
 
 각 차시 폴더 안의 `DOWNLOAD_GUIDE.md`를 먼저 읽고, 그 폴더 안에서 명령을 실행합니다.
@@ -31,14 +31,14 @@ cd sessions/01-architecture-blueprint
 
 | 차시 | 폴더 | 주제 |
 |---:|---|---|
-| 1차시 | `sessions/01-architecture-blueprint` | 전체 아키텍처 청사진 |
-| 2차시 | `sessions/02-local-docker-stack` | 로컬 Docker 실습 환경 |
-| 3차시 | `sessions/03-kafka-producer` | Kafka 이벤트 수집 |
-| 4차시 | `sessions/04-flink-paimon-bronze` | Flink와 Paimon Bronze |
-| 5차시 | `sessions/05-spark-iceberg-batch-bi` | Spark와 Iceberg Batch BI |
-| 6차시 | `sessions/06-airflow-orchestration` | Airflow 오케스트레이션 |
-| 7차시 | `sessions/07-realtime-olap-bi` | StarRocks Realtime OLAP와 BI |
-| 8차시 | `sessions/08-final-portfolio` | 최종 포트폴리오 정리 |
+| 1차시 | `sessions/1차시` | 전체 아키텍처 청사진 |
+| 2차시 | `sessions/2차시` | 로컬 Docker 실습 환경 |
+| 3차시 | `sessions/3차시` | Kafka 이벤트 수집 |
+| 4차시 | `sessions/4차시` | Flink와 Paimon Bronze |
+| 5차시 | `sessions/5차시` | Spark와 Iceberg Batch BI |
+| 6차시 | `sessions/6차시` | Airflow 오케스트레이션 |
+| 7차시 | `sessions/7차시` | StarRocks Realtime OLAP와 BI |
+| 8차시 | `sessions/8차시` | 최종 포트폴리오 정리 |
 
 ## 실습 전 공통 확인
 
