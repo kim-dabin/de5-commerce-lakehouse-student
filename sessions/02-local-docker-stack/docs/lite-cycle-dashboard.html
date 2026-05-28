@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DE5 Lite Cycle Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f4ef;
+      --surface: #ffffff;
+      --surface-2: #f0eee7;
+      --surface-3: #e7ece8;
+      --text: #22252a;
+      --muted: #656b73;
+      --line: #dad7ce;
+      --teal: #0f766e;
+      --teal-dark: #115e59;
+      --teal-soft: #dff4ef;
+      --amber: #b45309;
+      --amber-soft: #fef3c7;
+      --red: #b91c1c;
+      --green: #15803d;
+      --blue: #2563eb;
+      --indigo: #4f46e5;
+      --coral: #c2410c;
+      --violet: #7c3aed;
+      --terminal: #161a22;
+      --terminal-text: #eef2f7;
+      --shadow: 0 18px 48px rgba(39, 42, 48, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.55;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 18px 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.running {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .badge.success {
+      background: #dcfce7;
+      color: var(--green);
+    }
+
+    .badge.failed {
+      background: #fee2e2;
+      color: var(--red);
+    }
+
+    main {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 28px 42px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(420px, 0.8fr);
+      grid-template-areas:
+        "pipeline output"
+        "bi output";
+      gap: 18px;
+      align-items: start;
+    }
+
+    .pipeline-panel {
+      grid-area: pipeline;
+    }
+
+    .bi-panel {
+      grid-area: bi;
+    }
+
+    .output-panel {
+      grid-area: output;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      background: var(--surface);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .panel-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    .diagram {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .node {
+      position: relative;
+      min-height: 168px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-2);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .node:hover {
+      transform: translateY(-2px);
+      border-color: rgba(15, 118, 110, 0.45);
+      background: #ffffff;
+    }
+
+    .node.active {
+      border-color: var(--teal);
+      background: var(--teal-soft);
+    }
+
+    .node::after {
+      content: ">";
+      position: absolute;
+      top: 72px;
+      right: -13px;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--teal);
+      color: white;
+      font-size: 14px;
+      line-height: 24px;
+      text-align: center;
+      z-index: 2;
+    }
+
+    .node:last-child::after {
+      display: none;
+    }
+
+    .node-kicker {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--teal-dark);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .node-title {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .node-desc {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .node-meta {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      min-height: 36px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      padding: 7px 12px;
+      background: var(--teal);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: var(--teal-dark);
+    }
+
+    .btn.secondary {
+      background: #ffffff;
+      color: var(--teal-dark);
+      border-color: var(--line);
+    }
+
+    .btn.secondary:hover {
+      border-color: var(--teal);
+      background: var(--teal-soft);
+    }
+
+    .btn.warning {
+      background: var(--amber);
+    }
+
+    .btn.warning:hover {
+      background: #92400e;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .detail {
+      display: grid;
+      gap: 12px;
+    }
+
+    .detail-title {
+      margin: 0;
+      font-size: 21px;
+      letter-spacing: 0;
+    }
+
+    .detail-summary {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .step-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .step.active {
+      border-color: var(--teal);
+      background: var(--teal-soft);
+    }
+
+    .step h3 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .step p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: rgba(34, 37, 42, 0.08);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    .command {
+      margin-top: 7px;
+      color: #3a3f47;
+      word-break: break-word;
+    }
+
+    .terminal {
+      height: 560px;
+      overflow: auto;
+      padding: 16px;
+      background: var(--terminal);
+      color: var(--terminal-text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.48;
+      white-space: pre-wrap;
+    }
+
+    .empty-output {
+      color: #9ca3af;
+    }
+
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .note {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-3);
+      padding: 12px;
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .note span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bi-state {
+      margin-bottom: 16px;
+      min-height: 24px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bi-state.error {
+      color: var(--red);
+      font-weight: 750;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      min-height: 88px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .bi-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .viz-title {
+      margin: 0 0 10px;
+      font-size: 15px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .bar-chart {
+      display: grid;
+      gap: 10px;
+      min-height: 156px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(118px, 0.8fr) minmax(0, 1.5fr) 48px;
+      gap: 10px;
+      align-items: center;
+      min-height: 28px;
+      font-size: 13px;
+    }
+
+    .bar-label {
+      overflow: hidden;
+      color: #363b44;
+      font-weight: 750;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bar-track {
+      height: 15px;
+      border-radius: 4px;
+      background: var(--surface-2);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: 4px;
+      background: var(--teal);
+      transition: width 180ms ease;
+    }
+
+    .bar-value {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .bi-table-wrap {
+      margin-top: 18px;
+      overflow-x: auto;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .bi-table {
+      width: 100%;
+      min-width: 560px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .bi-table th,
+    .bi-table td {
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .bi-table th {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .bi-table td:last-child,
+    .bi-table th:last-child {
+      text-align: right;
+    }
+
+    @media (max-width: 1120px) {
+      main {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "pipeline"
+          "bi"
+          "output";
+      }
+
+      .diagram {
+        grid-template-columns: 1fr;
+      }
+
+      .node {
+        min-height: 132px;
+      }
+
+      .node::after {
+        content: "v";
+        top: auto;
+        right: 18px;
+        bottom: -13px;
+      }
+
+      .terminal {
+        height: 420px;
+      }
+
+      .bi-layout,
+      .metric-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar,
+      main {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .topbar,
+      .panel-head,
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .status-bar {
+        justify-content: flex-start;
+      }
+
+      .notes {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-grid,
+      .bi-layout,
+      .bar-row {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-value {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="topbar">
+        <div>
+          <h1>DE5 Lite Cycle Dashboard</h1>
+          <p class="subtitle">첫날 청사진 데모용: 아키텍처 노드별로 실습 스크립트를 실행하고 결과를 확인한다.</p>
+        </div>
+        <div class="status-bar">
+          <span id="serverStatus" class="badge">localhost only</span>
+          <span id="runStatus" class="badge">idle</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel pipeline-panel" aria-labelledby="diagramTitle">
+        <div class="panel-head">
+          <div>
+            <h2 id="diagramTitle">파이프라인 아키텍처</h2>
+            <p>왼쪽에서 오른쪽으로 데이터가 흐른다. 노드를 선택하면 해당 실습 단계가 열린다.</p>
+          </div>
+          <div class="action-row">
+            <button id="runFullCycle" class="btn warning" type="button">전체 사이클 실행</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="diagram" id="diagram"></div>
+
+          <div class="detail" id="detail">
+            <h2 class="detail-title" id="detailTitle">환경 준비</h2>
+            <p class="detail-summary" id="detailSummary"></p>
+            <div class="action-row">
+              <button id="runGroup" class="btn" type="button">선택 영역 실행</button>
+              <button id="refreshSteps" class="btn secondary" type="button">상태 새로고침</button>
+            </div>
+            <div class="step-list" id="stepList"></div>
+          </div>
+
+          <div class="notes">
+            <div class="note">
+              <strong>수업 포인트</strong>
+              <span>도구 이름보다 데이터가 어느 계층으로 이동하는지 먼저 보여준다.</span>
+            </div>
+            <div class="note">
+              <strong>실행 원칙</strong>
+              <span>이 화면은 정해진 스크립트만 실행한다. 임의 쉘 명령은 받지 않는다.</span>
+            </div>
+            <div class="note">
+              <strong>성공 기준</strong>
+              <span>최종 Iceberg 조회에서 <code>clean_row_count = 240</code>가 나오면 라이트 사이클 성공이다.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel bi-panel" aria-labelledby="biTitle">
+        <div class="panel-head">
+          <div>
+            <h2 id="biTitle">BI 결과 미리보기</h2>
+            <p>Iceberg Analytics 결과를 최종 소비 화면처럼 확인한다.</p>
+          </div>
+          <div class="action-row">
+            <button id="refreshBi" class="btn secondary" type="button">BI 새로고침</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="biState" class="bi-state">Spark + Iceberg 실행 후 새로고침하면 차트가 표시된다.</div>
+          <div class="metric-grid" id="metricGrid"></div>
+          <div class="bi-layout">
+            <div>
+              <h3 class="viz-title">일 단위 이벤트 타입</h3>
+              <div id="eventTypeChart" class="bar-chart"></div>
+            </div>
+            <div>
+              <h3 class="viz-title">카테고리 매출 Top</h3>
+              <div id="categoryChart" class="bar-chart"></div>
+            </div>
+          </div>
+          <div class="bi-table-wrap">
+            <h3 class="viz-title">일 단위 Analytics Table</h3>
+            <table class="bi-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Event Type</th>
+                  <th>Events</th>
+                  <th>Users</th>
+                  <th>Sessions</th>
+                  <th>Products</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody id="dailyTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel output-panel" aria-labelledby="outputTitle">
+        <div class="panel-head">
+          <div>
+            <h2 id="outputTitle">Execution Output</h2>
+            <p id="outputMeta">아직 실행한 작업이 없다.</p>
+          </div>
+          <div class="action-row">
+            <button id="clearOutput" class="btn secondary" type="button">출력 지우기</button>
+          </div>
+        </div>
+        <pre id="terminal" class="terminal"><span class="empty-output">노드를 선택하고 실행하면 로그가 여기에 표시된다.</span></pre>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const architecture = [
+      {
+        id: "setup",
+        kicker: "00",
+        title: "환경 준비",
+        desc: "Docker와 기본 컨테이너 스택을 올린다.",
+        meta: "check -> compose -> smoke"
+      },
+      {
+        id: "kafka",
+        kicker: "01",
+        title: "Kafka 입력",
+        desc: "샘플 이벤트를 토픽에 넣고 확인한다.",
+        meta: "reset -> produce -> consume"
+      },
+      {
+        id: "flink_paimon",
+        kicker: "02",
+        title: "Flink + Paimon",
+        desc: "Kafka를 읽어 Bronze 테이블에 적재한다.",
+        meta: "reset -> ingest -> query"
+      },
+      {
+        id: "spark_iceberg",
+        kicker: "03",
+        title: "Spark + Iceberg",
+        desc: "Bronze를 분석용 테이블로 정제/집계한다.",
+        meta: "reset -> transform -> query"
+      },
+      {
+        id: "airflow",
+        kicker: "04",
+        title: "Airflow",
+        desc: "전체 실행 순서를 DAG로 자동화한다.",
+        meta: "start -> list -> trigger"
+      }
+    ];
+
+    let groups = [];
+    let selectedGroupId = "setup";
+    let activeRunId = null;
+    let pollingTimer = null;
+    let isRunning = false;
+    let activeStepId = null;
+    let refreshedBiForRun = null;
+
+    const diagramEl = document.getElementById("diagram");
+    const detailTitleEl = document.getElementById("detailTitle");
+    const detailSummaryEl = document.getElementById("detailSummary");
+    const stepListEl = document.getElementById("stepList");
+    const terminalEl = document.getElementById("terminal");
+    const outputMetaEl = document.getElementById("outputMeta");
+    const runStatusEl = document.getElementById("runStatus");
+    const runGroupBtn = document.getElementById("runGroup");
+    const runFullCycleBtn = document.getElementById("runFullCycle");
+    const refreshStepsBtn = document.getElementById("refreshSteps");
+    const clearOutputBtn = document.getElementById("clearOutput");
+    const refreshBiBtn = document.getElementById("refreshBi");
+    const biStateEl = document.getElementById("biState");
+    const metricGridEl = document.getElementById("metricGrid");
+    const eventTypeChartEl = document.getElementById("eventTypeChart");
+    const categoryChartEl = document.getElementById("categoryChart");
+    const dailyTableBodyEl = document.getElementById("dailyTableBody");
+    const chartColors = ["#0f766e", "#2563eb", "#c2410c", "#7c3aed", "#15803d", "#4f46e5"];
+
+    function groupById(id) {
+      return groups.find((group) => group.id === id);
+    }
+
+    function setRunStatus(status) {
+      runStatusEl.className = `badge ${status}`;
+      runStatusEl.textContent = status;
+      isRunning = status === "running";
+      document.querySelectorAll("button").forEach((button) => {
+        if (button.id !== "clearOutput" && button.id !== "refreshSteps") {
+          button.disabled = isRunning;
+        }
+      });
+    }
+
+    function renderDiagram() {
+      diagramEl.innerHTML = "";
+      architecture.forEach((node) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `node ${node.id === selectedGroupId ? "active" : ""}`;
+        button.dataset.groupId = node.id;
+        button.innerHTML = `
+          <span class="node-kicker">${node.kicker}</span>
+          <span class="node-title">${node.title}</span>
+          <span class="node-desc">${node.desc}</span>
+          <span class="node-meta">${node.meta}</span>
+        `;
+        button.addEventListener("click", () => selectGroup(node.id));
+        diagramEl.appendChild(button);
+      });
+    }
+
+    function renderDetail() {
+      const group = groupById(selectedGroupId);
+      if (!group) return;
+
+      detailTitleEl.textContent = group.title;
+      detailSummaryEl.textContent = group.summary;
+      runGroupBtn.textContent = `${group.title} 실행`;
+
+      stepListEl.innerHTML = "";
+      group.steps.forEach((step, index) => {
+        const row = document.createElement("div");
+        row.className = `step ${step.id === activeStepId ? "active" : ""}`;
+        row.innerHTML = `
+          <div>
+            <h3>${index + 1}. ${step.title}</h3>
+            <p>${step.goal}</p>
+            <p class="command"><code>${step.command}</code></p>
+            <p>성공 신호: <strong>${step.success}</strong></p>
+          </div>
+          <button class="btn secondary" type="button">단계 실행</button>
+        `;
+        row.querySelector("button").addEventListener("click", () => runTarget(step.id));
+        stepListEl.appendChild(row);
+      });
+    }
+
+    function selectGroup(groupId) {
+      selectedGroupId = groupId;
+      renderDiagram();
+      renderDetail();
+    }
+
+    async function loadSteps() {
+      const response = await fetch("/api/steps", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Failed to load steps: ${response.status}`);
+      }
+      const payload = await response.json();
+      groups = payload.groups;
+      if (payload.active_run_id) {
+        activeRunId = payload.active_run_id;
+        pollRun(activeRunId);
+      }
+      renderDiagram();
+      renderDetail();
+    }
+
+    function setOutput(text) {
+      terminalEl.textContent = text || "노드를 선택하고 실행하면 로그가 여기에 표시된다.";
+      terminalEl.scrollTop = terminalEl.scrollHeight;
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat("ko-KR").format(Number(value || 0));
+    }
+
+    function setBiState(message, isError = false) {
+      biStateEl.textContent = message;
+      biStateEl.className = `bi-state ${isError ? "error" : ""}`;
+    }
+
+    function renderMetrics(totals) {
+      const metrics = [
+        ["Total Events", totals.total_events],
+        ["Event Types", totals.event_types],
+        ["Products", totals.products],
+        ["Users", totals.users],
+        ["Sessions", totals.sessions],
+        ["Revenue", totals.revenue]
+      ];
+
+      metricGridEl.innerHTML = "";
+      metrics.forEach(([label, value]) => {
+        const card = document.createElement("div");
+        card.className = "metric";
+
+        const labelEl = document.createElement("span");
+        labelEl.textContent = label;
+        const valueEl = document.createElement("strong");
+        valueEl.textContent = formatNumber(value);
+
+        card.append(labelEl, valueEl);
+        metricGridEl.appendChild(card);
+      });
+    }
+
+    function renderBarChart(container, rows, labelKey, valueKey, colorOffset = 0) {
+      container.innerHTML = "";
+      if (!rows.length) {
+        const empty = document.createElement("div");
+        empty.className = "bi-state";
+        empty.textContent = "표시할 데이터가 없다.";
+        container.appendChild(empty);
+        return;
+      }
+
+      const maxValue = Math.max(...rows.map((row) => Number(row[valueKey] || 0)), 1);
+      rows.forEach((row, index) => {
+        const value = Number(row[valueKey] || 0);
+        const rowEl = document.createElement("div");
+        rowEl.className = "bar-row";
+
+        const labelEl = document.createElement("div");
+        labelEl.className = "bar-label";
+        labelEl.title = String(row[labelKey] || "");
+        labelEl.textContent = row[labelKey] || "-";
+
+        const trackEl = document.createElement("div");
+        trackEl.className = "bar-track";
+        const fillEl = document.createElement("div");
+        fillEl.className = "bar-fill";
+        fillEl.style.width = `${Math.max((value / maxValue) * 100, 2)}%`;
+        fillEl.style.background = chartColors[(index + colorOffset) % chartColors.length];
+        trackEl.appendChild(fillEl);
+
+        const valueEl = document.createElement("div");
+        valueEl.className = "bar-value";
+        valueEl.textContent = formatNumber(value);
+
+        rowEl.append(labelEl, trackEl, valueEl);
+        container.appendChild(rowEl);
+      });
+    }
+
+    function renderDailyTable(rows) {
+      dailyTableBodyEl.innerHTML = "";
+      rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        [
+          row.event_date,
+          row.event_type,
+          row.event_count,
+          row.user_count,
+          row.session_count,
+          row.product_count,
+          row.revenue
+        ].forEach((value, index) => {
+          const td = document.createElement("td");
+          td.textContent = index >= 2 ? formatNumber(value) : String(value || "-");
+          tr.appendChild(td);
+        });
+        dailyTableBodyEl.appendChild(tr);
+      });
+    }
+
+    function renderBi(payload) {
+      const dailyRows = payload.event_type_daily || [];
+      const eventRows = dailyRows.map((row) => ({
+        label: `${row.event_date} · ${row.event_type}`,
+        value: row.event_count
+      }));
+      const categoryRows = (payload.top_categories || []).map((row) => ({
+        label: row.category_code,
+        value: row.revenue
+      }));
+
+      renderMetrics(payload.totals || {});
+      renderBarChart(eventTypeChartEl, eventRows, "label", "value");
+      renderBarChart(categoryChartEl, categoryRows, "label", "value", 2);
+      renderDailyTable(dailyRows);
+
+      const loadedAt = payload.loaded_at
+        ? new Date(payload.loaded_at * 1000).toLocaleTimeString("ko-KR")
+        : "now";
+      setBiState(`Iceberg Analytics 기준으로 ${loadedAt}에 갱신했다.`);
+    }
+
+    async function loadBi() {
+      try {
+        setBiState("Iceberg Analytics 테이블을 조회하는 중...");
+        const response = await fetch("/api/bi", { cache: "no-store" });
+        const payload = await response.json();
+        if (!response.ok) {
+          const message = response.status === 409
+            ? "파이프라인 실행 중이라 BI 조회를 잠시 멈췄다."
+            : "Spark + Iceberg 변환을 먼저 실행하면 BI 차트가 표시된다.";
+          setBiState(message, true);
+          if (payload.output) {
+            console.warn(payload.output);
+          }
+          return;
+        }
+        renderBi(payload);
+      } catch (error) {
+        setBiState(`BI 조회 실패: ${String(error)}`, true);
+      }
+    }
+
+    async function runTarget(targetId) {
+      try {
+        setRunStatus("running");
+        outputMetaEl.textContent = "실행 요청 중...";
+        const response = await fetch(`/api/run/${encodeURIComponent(targetId)}`, {
+          method: "POST"
+        });
+        const payload = await response.json();
+        if (response.status === 409 && payload.active_run_id) {
+          activeRunId = payload.active_run_id;
+          pollRun(activeRunId);
+          return;
+        }
+        if (!response.ok) {
+          throw new Error(payload.error || `Run failed: ${response.status}`);
+        }
+        activeRunId = payload.run_id;
+        setOutput("");
+        pollRun(activeRunId);
+      } catch (error) {
+        setRunStatus("failed");
+        outputMetaEl.textContent = "실행 요청 실패";
+        setOutput(String(error));
+      }
+    }
+
+    async function pollRun(runId) {
+      if (pollingTimer) {
+        clearInterval(pollingTimer);
+      }
+
+      const tick = async () => {
+        const response = await fetch(`/api/runs/${encodeURIComponent(runId)}`, {
+          cache: "no-store"
+        });
+        if (!response.ok) {
+          setRunStatus("failed");
+          outputMetaEl.textContent = "실행 상태를 불러오지 못했다.";
+          return;
+        }
+        const run = await response.json();
+        activeStepId = run.active_step;
+        setOutput(run.output);
+        setRunStatus(run.status);
+
+        const progress = run.total_steps
+          ? `${run.active_index}/${run.total_steps}`
+          : "0/0";
+        outputMetaEl.textContent = `${run.target_title} · ${progress} · ${run.status}`;
+        renderDetail();
+
+        if (run.status !== "running" && pollingTimer) {
+          clearInterval(pollingTimer);
+          pollingTimer = null;
+        }
+
+        if (run.status === "success" && refreshedBiForRun !== run.id) {
+          refreshedBiForRun = run.id;
+          loadBi();
+        }
+      };
+
+      await tick();
+      pollingTimer = setInterval(tick, 1200);
+    }
+
+    runGroupBtn.addEventListener("click", () => runTarget(selectedGroupId));
+    runFullCycleBtn.addEventListener("click", () => runTarget("full_cycle"));
+    refreshStepsBtn.addEventListener("click", loadSteps);
+    refreshBiBtn.addEventListener("click", loadBi);
+    clearOutputBtn.addEventListener("click", () => {
+      setOutput("");
+      outputMetaEl.textContent = "출력을 지웠다.";
+    });
+
+    loadSteps().then(loadBi).catch((error) => {
+      setRunStatus("failed");
+      setOutput(String(error));
+      outputMetaEl.textContent = "대시보드 초기화 실패";
+    });
+  </script>
+</body>
+</html>

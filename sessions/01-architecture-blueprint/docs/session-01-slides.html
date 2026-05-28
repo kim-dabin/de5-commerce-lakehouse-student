@@ -1,0 +1,1508 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DE5 1차시 장표 - Lakehouse 파이프라인 전체 지도</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-soft: #f9fafb;
+      --ink: #17202a;
+      --muted: #5f6b7a;
+      --line: #d8dee7;
+      --teal: #0f766e;
+      --teal-soft: #dff5f1;
+      --blue: #2563eb;
+      --blue-soft: #e6efff;
+      --red: #dc2626;
+      --red-soft: #fee2e2;
+      --gold: #b7791f;
+      --gold-soft: #fff2cc;
+      --green: #15803d;
+      --green-soft: #e8f7ed;
+      --purple: #7c3aed;
+      --purple-soft: #f0e9ff;
+      --shadow: 0 18px 50px rgba(23, 32, 42, 0.09);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.45;
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slides {
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      padding: 56px 64px 72px;
+      overflow: auto;
+      background: var(--bg);
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    .slide-inner {
+      max-width: 1180px;
+      min-height: calc(100vh - 128px);
+      margin: 0 auto;
+      display: grid;
+      align-content: center;
+      gap: 24px;
+    }
+
+    .slide-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .slide-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 1000px;
+      font-size: 64px;
+      line-height: 1.05;
+      font-weight: 850;
+    }
+
+    h2 {
+      max-width: 1040px;
+      font-size: 50px;
+      line-height: 1.08;
+      font-weight: 820;
+    }
+
+    h3 {
+      font-size: 26px;
+      line-height: 1.2;
+      font-weight: 780;
+    }
+
+    .subtitle {
+      max-width: 900px;
+      color: var(--muted);
+      font-size: 22px;
+    }
+
+    .lead {
+      max-width: 920px;
+      font-size: 26px;
+      line-height: 1.38;
+      color: #29313b;
+    }
+
+    .big-line {
+      max-width: 1000px;
+      padding: 26px 30px;
+      border: 1px solid var(--line);
+      border-left: 8px solid var(--teal);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      font-size: 30px;
+      line-height: 1.38;
+      font-weight: 760;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid.four {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(23, 32, 42, 0.06);
+    }
+
+    .card.soft {
+      background: var(--surface-soft);
+      box-shadow: none;
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .card strong {
+      color: var(--ink);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: #344152;
+      font-size: 16px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .accent-teal {
+      border-color: rgba(15, 118, 110, 0.35);
+      background: var(--teal-soft);
+    }
+
+    .accent-blue {
+      border-color: rgba(37, 99, 235, 0.28);
+      background: var(--blue-soft);
+    }
+
+    .accent-red {
+      border-color: rgba(220, 38, 38, 0.26);
+      background: var(--red-soft);
+    }
+
+    .accent-gold {
+      border-color: rgba(183, 121, 31, 0.32);
+      background: var(--gold-soft);
+    }
+
+    .accent-green {
+      border-color: rgba(21, 128, 61, 0.28);
+      background: var(--green-soft);
+    }
+
+    .accent-purple {
+      border-color: rgba(124, 58, 237, 0.25);
+      background: var(--purple-soft);
+    }
+
+    .flow-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 132px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(23, 32, 42, 0.06);
+    }
+
+    .flow-step::after {
+      content: "";
+      position: absolute;
+      top: 54px;
+      right: -15px;
+      width: 18px;
+      height: 18px;
+      border-top: 3px solid #8591a3;
+      border-right: 3px solid #8591a3;
+      transform: rotate(45deg);
+      background: transparent;
+      z-index: 2;
+    }
+
+    .flow-step:last-child::after {
+      display: none;
+    }
+
+    .flow-step .num {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .flow-step .name {
+      margin-top: 8px;
+      font-size: 23px;
+      line-height: 1.2;
+      font-weight: 820;
+    }
+
+    .flow-step .desc {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .flow-step .tool {
+      display: inline-flex;
+      margin-top: 12px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #243244;
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .tech-map {
+      display: grid;
+      gap: 12px;
+    }
+
+    .tech-row {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .tech-label {
+      display: grid;
+      place-items: center;
+      min-height: 64px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-size: 22px;
+      font-weight: 850;
+    }
+
+    .tech-detail {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      padding: 12px 16px;
+      color: #334155;
+      font-size: 18px;
+    }
+
+    .compare {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .compare-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .compare-card .label {
+      display: inline-flex;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .compare-card h3 {
+      margin-top: 16px;
+      font-size: 42px;
+    }
+
+    .compare-card ul {
+      margin: 18px 0 0;
+      padding-left: 21px;
+      color: #334155;
+      font-size: 21px;
+      line-height: 1.55;
+    }
+
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .week {
+      min-height: 120px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(23, 32, 42, 0.06);
+    }
+
+    .week .session {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .week .topic {
+      margin-top: 8px;
+      font-size: 22px;
+      font-weight: 820;
+      line-height: 1.25;
+    }
+
+    .week .result {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 130px minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .timeline-row time {
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-weight: 820;
+      color: #334155;
+    }
+
+    .timeline-row div {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      padding: 12px 16px;
+      font-size: 19px;
+      color: #334155;
+    }
+
+    .command {
+      overflow: auto;
+      border-radius: var(--radius);
+      background: #17202a;
+      color: #f8fafc;
+      padding: 18px 20px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 18px;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .demo-steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .demo-step {
+      min-height: 124px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(23, 32, 42, 0.06);
+    }
+
+    .demo-step h3 {
+      margin-bottom: 8px;
+      font-size: 22px;
+    }
+
+    .demo-step code {
+      display: block;
+      color: #334155;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: normal;
+    }
+
+    .mission-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .screen-preview {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .mini-chart {
+      height: 240px;
+      display: flex;
+      align-items: end;
+      gap: 16px;
+      padding: 24px 16px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f8fafc;
+    }
+
+    .bar {
+      flex: 1;
+      min-width: 42px;
+      border-radius: 6px 6px 0 0;
+      background: var(--blue);
+      position: relative;
+    }
+
+    .bar:nth-child(2) {
+      background: #38bdf8;
+    }
+
+    .bar:nth-child(3) {
+      background: var(--red);
+    }
+
+    .bar:nth-child(4) {
+      background: #f59e0b;
+    }
+
+    .bar:nth-child(5) {
+      background: var(--teal);
+    }
+
+    .bar span {
+      position: absolute;
+      left: 50%;
+      bottom: -34px;
+      transform: translateX(-50%);
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .lineage {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      align-items: center;
+    }
+
+    .lineage-node {
+      min-height: 96px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 12px;
+      font-size: 17px;
+      font-weight: 800;
+      position: relative;
+    }
+
+    .lineage-node::after {
+      content: "";
+      position: absolute;
+      right: -15px;
+      width: 18px;
+      height: 18px;
+      border-top: 3px solid #8591a3;
+      border-right: 3px solid #8591a3;
+      transform: rotate(45deg);
+    }
+
+    .lineage-node:last-child::after {
+      display: none;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 12px;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 15px 16px;
+      font-size: 20px;
+    }
+
+    .check .box {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--teal);
+      border-radius: 4px;
+      margin-top: 2px;
+      background: var(--teal-soft);
+    }
+
+    .notes {
+      display: none;
+      max-width: 1180px;
+      margin: 2px auto 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fffdf5;
+      color: #3f3a2c;
+      padding: 14px 18px;
+      font-size: 17px;
+    }
+
+    .notes.open {
+      display: block;
+    }
+
+    .notes summary {
+      cursor: pointer;
+      font-weight: 820;
+    }
+
+    .notes ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+
+    .controls {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 10px 30px rgba(23, 32, 42, 0.12);
+      z-index: 20;
+    }
+
+    .controls button {
+      min-width: 42px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 850;
+    }
+
+    .controls button:hover {
+      border-color: var(--teal);
+      background: var(--teal-soft);
+    }
+
+    .progress {
+      min-width: 92px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .overview {
+      position: fixed;
+      inset: 0;
+      display: none;
+      overflow: auto;
+      padding: 34px;
+      background: rgba(246, 247, 249, 0.98);
+      z-index: 30;
+    }
+
+    .overview.open {
+      display: block;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 14px;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    .thumb {
+      min-height: 140px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 16px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(23, 32, 42, 0.06);
+    }
+
+    .thumb:hover {
+      border-color: var(--teal);
+    }
+
+    .thumb .idx {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .thumb .title {
+      margin-top: 10px;
+      color: var(--ink);
+      font-size: 20px;
+      font-weight: 840;
+      line-height: 1.25;
+    }
+
+    .compact-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .compact-list li {
+      padding: 13px 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      font-size: 21px;
+      font-weight: 720;
+    }
+
+    .quote {
+      padding: 26px 30px;
+      border-radius: var(--radius);
+      background: #17202a;
+      color: #f8fafc;
+      font-size: 31px;
+      line-height: 1.38;
+      font-weight: 780;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .artifact-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .artifact-list li {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 13px 14px;
+      font-size: 18px;
+    }
+
+    .artifact-list .key {
+      color: var(--teal);
+      font-weight: 850;
+    }
+
+    .footer-hint {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      z-index: 10;
+    }
+
+    body.export-mode .controls,
+    body.export-mode .overview,
+    body.export-mode .footer-hint {
+      display: none !important;
+    }
+
+    body.export-mode .slide {
+      overflow: hidden;
+    }
+
+    @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+
+      .deck {
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .slide {
+        position: relative;
+        min-height: 100vh;
+        padding: 32px 20px;
+      }
+
+      .slide:not(.active) {
+        display: none;
+      }
+
+      .slide-inner {
+        min-height: auto;
+      }
+
+      h1 {
+        font-size: 42px;
+      }
+
+      h2 {
+        font-size: 34px;
+      }
+
+      .lead,
+      .big-line,
+      .quote {
+        font-size: 22px;
+      }
+
+      .grid.two,
+      .grid.three,
+      .grid.four,
+      .flow-strip,
+      .compare,
+      .roadmap,
+      .demo-grid,
+      .demo-steps,
+      .mission-grid,
+      .split,
+      .lineage {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-step::after,
+      .lineage-node::after {
+        display: none;
+      }
+
+      .tech-row,
+      .timeline-row,
+      .artifact-list li {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        transform: none;
+        width: max-content;
+        max-width: calc(100% - 32px);
+        margin: 16px auto 22px;
+      }
+
+      .footer-hint {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        margin: 0 auto 28px;
+        text-align: center;
+      }
+    }
+
+    @media print {
+      body {
+        overflow: visible;
+        background: white;
+      }
+
+      .deck {
+        height: auto;
+        overflow: visible;
+      }
+
+      .slide {
+        position: relative;
+        display: block !important;
+        min-height: 100vh;
+        page-break-after: always;
+        padding: 36px;
+        background: white;
+      }
+
+      .slide-inner {
+        min-height: auto;
+      }
+
+      .controls,
+      .overview,
+      .footer-hint {
+        display: none !important;
+      }
+
+      .notes {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck">
+    <main class="slides" aria-live="polite">
+      <section class="slide active" data-title="1차시: 전체 지도 그리기">
+        <div class="slide-inner">
+          <div class="slide-top">
+            <span class="slide-tag">데이터 엔지니어 부트캠프 5기 B주제</span>
+            <span>2026.05.29</span>
+          </div>
+          <h1>Lakehouse 기반 데이터 파이프라인 전체 지도</h1>
+          <p class="subtitle">1차시: OT + 앞으로 만들 시스템을 먼저 한 장의 지도로 이해하기</p>
+          <div class="pill-row">
+            <span class="pill accent-teal">Kafka</span>
+            <span class="pill accent-blue">Flink</span>
+            <span class="pill accent-gold">Paimon</span>
+            <span class="pill accent-green">Spark</span>
+            <span class="pill accent-purple">Iceberg</span>
+            <span class="pill accent-red">BI / Metadata</span>
+          </div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>오늘은 구현보다 전체 지도를 잡는 시간이라고 먼저 말한다.</li>
+              <li>도구 이름을 다 외우는 수업이 아니라 역할을 구분하는 수업이라고 기대치를 낮춘다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="아이스브레이킹">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">채팅 참여</span><span>1분</span></div>
+          <h2>이번 스터디에서 가장 얻고 싶은 것은?</h2>
+          <div class="grid two">
+            <div class="card accent-teal"><h3>1. Kafka/Flink 실시간 처리 감 잡기</h3></div>
+            <div class="card accent-blue"><h3>2. Iceberg/Paimon Lakehouse 이해하기</h3></div>
+            <div class="card accent-green"><h3>3. Airflow/Spark 배치 파이프라인 만들기</h3></div>
+            <div class="card accent-gold"><h3>4. 장애 대응/로드 테스트 경험하기</h3></div>
+            <div class="card accent-red"><h3>5. 포트폴리오용 End-to-End 프로젝트 만들기</h3></div>
+          </div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>채팅 숫자 분포를 보고 뒤 내용과 연결한다.</li>
+              <li>포트폴리오 관심이 많으면 README/장애 대응 기록/발표자료를 강조한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="스터디 주제 풀어보기">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">주제 해체</span><span>제목을 이해하기</span></div>
+          <h2>“실시간 수집부터 OLAP 서빙까지”는 무슨 뜻일까?</h2>
+          <div class="grid four">
+            <div class="card accent-teal">
+              <h3>실시간 수집</h3>
+              <p>서비스에서 계속 발생하는 이벤트를 안전하게 받는다.</p>
+              <p class="muted">Kafka</p>
+            </div>
+            <div class="card accent-gold">
+              <h3>Lakehouse</h3>
+              <p>파일을 스키마, 이력, 복구 기준이 있는 테이블처럼 관리한다.</p>
+              <p class="muted">Paimon / Iceberg</p>
+            </div>
+            <div class="card accent-blue">
+              <h3>실무형</h3>
+              <p>한 번 성공이 아니라 재실행, 검증, 장애 대응까지 본다.</p>
+              <p class="muted">Flink / Spark / Airflow</p>
+            </div>
+            <div class="card accent-red">
+              <h3>OLAP 서빙</h3>
+              <p>최종 데이터를 SQL이나 BI 화면에서 빠르게 조회한다.</p>
+              <p class="muted">StarRocks / BI</p>
+            </div>
+          </div>
+          <div class="big-line">우리는 데이터가 원천에서 소비 화면까지 가는 길을 설계하고 설명하는 연습을 합니다.</div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>제목을 그대로 읽고 넘어가지 말고 네 조각으로 쪼개서 설명한다.</li>
+              <li>“DB 하나에 넣으면 안 되나?”라는 질문이 자연스럽다고 먼저 인정한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="오늘의 목표">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">오늘의 목표</span><span>수업 후 상태</span></div>
+          <h2>오늘 끝나고 이것만 말할 수 있으면 됩니다</h2>
+          <div class="grid three">
+            <div class="card accent-teal">
+              <h3>흐름</h3>
+              <p>데이터가 들어오고, 저장되고, 정리되고, 조회되는 길을 5~6단계로 설명한다.</p>
+            </div>
+            <div class="card accent-blue">
+              <h3>역할</h3>
+              <p>각 기술의 문법보다 “왜 이 위치에 있는지”를 구분한다.</p>
+            </div>
+            <div class="card accent-gold">
+              <h3>결과물</h3>
+              <p>이 프로젝트를 실무 적용과 포트폴리오 관점으로 설명할 준비를 시작한다.</p>
+            </div>
+          </div>
+          <div class="big-line">오늘은 모든 기술을 이해하는 날이 아니라, 앞으로 볼 시스템의 지도를 만드는 날입니다.</div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>사전 조사에서 실무 적용과 취업/전환 니즈가 컸다고 연결한다.</li>
+              <li>“지금 모르는 단어가 나와도 정상”이라고 말해 진입 장벽을 낮춘다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="수업 운영 방식">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">운영 방식</span><span>8회차 공통</span></div>
+          <h2>수업은 작게 만들고, 매번 결과물을 남깁니다</h2>
+          <div class="grid four">
+            <div class="card">
+              <h3>8회</h3>
+              <p>금/일 20:00~22:00, 회차당 2시간</p>
+            </div>
+            <div class="card">
+              <h3>Discord</h3>
+              <p>공지, 자료, 과제 제출, 질문 기록</p>
+            </div>
+            <div class="card">
+              <h3>발표</h3>
+              <p>2차시부터 짧게 공유하고 질문 만들기</p>
+            </div>
+            <div class="card">
+              <h3>출석/과제</h3>
+              <p>환급 조건과 연결되므로 제출 흐름 중요</p>
+            </div>
+          </div>
+          <p class="lead">발표는 평가가 아니라, 내가 어디까지 이해했고 어디가 막혔는지 드러내는 시간입니다.</p>
+          <p class="lead">실습은 우선 로컬 Docker 환경 기준으로 진행합니다. AWS는 필수가 아니며, 클라우드 배포는 포트폴리오 확장 옵션으로 다룹니다.</p>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>Zoom 이름은 실명 권장, 녹화본 제공 예정, 질문은 Discord에 남긴다고 안내한다.</li>
+              <li>AWS 계정은 필수가 아니며, 클라우드 사용 시 비용 관리가 필요하다고 짧게 안내한다.</li>
+              <li>2차시 시작 때 1차 과제 일부를 3분 정도 발표한다고 말한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="이 수업의 진짜 문제">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">실무 질문</span><span>도구보다 문제</span></div>
+          <h2>우리가 풀 문제는 기술 나열이 아닙니다</h2>
+          <div class="grid two">
+            <ul class="compact-list">
+              <li>데이터가 계속 들어오면 어디에 안전하게 받을까?</li>
+              <li>실시간 데이터와 배치 데이터를 어떻게 연결할까?</li>
+              <li>기준 데이터와 조회용 데이터를 어떻게 구분할까?</li>
+            </ul>
+            <ul class="compact-list">
+              <li>잘못된 데이터가 들어오면 어디까지 되돌릴 수 있을까?</li>
+              <li>느려졌을 때 어디부터 봐야 할까?</li>
+              <li>최종 지표를 믿을 수 있게 하려면 무엇이 필요할까?</li>
+            </ul>
+          </div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>BI는 필수 구현 대상이 아니라 결과가 쓰이는 마지막 화면으로 보여준다고 설명한다.</li>
+              <li>“운영 가능한 파이프라인”이라는 표현을 반복한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Data Lake, DWH, Lakehouse">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">개념 정리</span><span>Lakehouse</span></div>
+          <h2>Lakehouse는 파일 더미를 운영 가능한 테이블로 바꾸는 방식입니다</h2>
+          <div class="grid three">
+            <div class="card">
+              <h3>Data Lake</h3>
+              <p>원천 데이터를 많이 저장하기 좋지만, 파일만 쌓이면 관리가 어려워집니다.</p>
+            </div>
+            <div class="card">
+              <h3>DWH</h3>
+              <p>정제된 데이터를 빠르게 분석하기 좋지만, 원천 보관과 재처리 유연성은 제한될 수 있습니다.</p>
+            </div>
+            <div class="card accent-teal">
+              <h3>Lakehouse</h3>
+              <p>Data Lake 위에 테이블 포맷을 올려 snapshot, schema, partition, 복구 기준을 관리합니다.</p>
+            </div>
+          </div>
+          <div class="quote">파일 더미에 주소, 규칙, 이력, 복구 기준을 붙인다.</div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>Parquet 파일만 있으면 최신 파일/스키마/되돌리기 기준을 관리하기 어렵다고 설명한다.</li>
+              <li>Paimon과 Iceberg는 이 테이블 포맷 영역에 있다고 연결한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="역할에서 기술로">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">역할 -> 기술</span><span>6단계</span></div>
+          <h2>먼저 역할을 잡고, 그 위에 기술 이름을 붙입니다</h2>
+          <div class="flow-strip">
+            <div class="flow-step accent-teal"><div class="num">01</div><div class="name">수집</div><div class="desc">이벤트를 안정적으로 받는다</div><div class="tool">Kafka</div></div>
+            <div class="flow-step accent-blue"><div class="num">02</div><div class="name">실시간 처리</div><div class="desc">들어온 데이터를 바로 해석한다</div><div class="tool">Flink</div></div>
+            <div class="flow-step accent-gold"><div class="num">03</div><div class="name">실시간 저장</div><div class="desc">원천에 가까운 상태로 남긴다</div><div class="tool">Paimon</div></div>
+            <div class="flow-step accent-green"><div class="num">04</div><div class="name">배치 정리</div><div class="desc">기준 데이터로 정리한다</div><div class="tool">Spark</div></div>
+            <div class="flow-step accent-purple"><div class="num">05</div><div class="name">분석 테이블</div><div class="desc">스냅샷과 복구 기준을 남긴다</div><div class="tool">Iceberg</div></div>
+            <div class="flow-step accent-red"><div class="num">06</div><div class="name">결과 확인</div><div class="desc">지표와 lineage를 확인한다</div><div class="tool">BI / Metadata</div></div>
+          </div>
+          <p class="lead">StarRocks, Streamlit, OpenMetadata는 결과를 확인하기 위한 선택 데모입니다. 필수 실습의 중심은 Kafka -> Flink -> Paimon -> Spark -> Iceberg입니다.</p>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>여러분은 오늘 기술 이름을 외우는 것이 아니라 역할과 위치를 가져가면 된다고 말한다.</li>
+              <li>“서울에서 부산 가는 전체 지도만 먼저 보는 날”이라는 식으로 부담을 낮춘다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="휴식">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">10분 휴식</span><span>21:00~21:10</span></div>
+          <h2>10분 쉬고 다시 시작합니다</h2>
+          <div class="big-line">쉬는 동안 채팅에 남겨주세요: 지금 가장 헷갈리는 기술 이름 1개, 또는 “왜 필요한지 모르겠다” 싶은 구간 1개</div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>질문 1~2개를 골라 2부 시작 때 바로 반영한다.</li>
+              <li>타이머를 띄우고 녹화/출석 상태를 한번 확인한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="역할 비유">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">역할 비유</span><span>처음 이해용</span></div>
+          <h2>처음에는 비유로 잡고, 세부 기능은 각 회차에서 봅니다</h2>
+          <div class="grid three">
+            <div class="card accent-teal"><h3>Kafka</h3><p><strong>물류센터 상하차장</strong><br>이벤트를 안정적으로 받아둔다.</p></div>
+            <div class="card accent-blue"><h3>Flink</h3><p><strong>컨베이어 작업자</strong><br>들어온 이벤트를 실시간으로 손질한다.</p></div>
+            <div class="card accent-gold"><h3>Paimon</h3><p><strong>당일 임시 장부</strong><br>변경이 잦은 실시간 원천을 저장한다.</p></div>
+            <div class="card accent-green"><h3>Spark / Airflow</h3><p><strong>정기 정리 작업반</strong><br>배치 변환과 실행 순서를 관리한다.</p></div>
+            <div class="card accent-purple"><h3>Iceberg</h3><p><strong>월말 결산 장부</strong><br>기준 데이터와 snapshot을 관리한다.</p></div>
+            <div class="card accent-red"><h3>BI / Metadata</h3><p><strong>매출판과 지도</strong><br>지표와 데이터 흐름을 확인한다.</p></div>
+          </div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>비유는 완벽한 기술 설명이 아니라 첫 이해용 발판이라고 말한다.</li>
+              <li>BI를 보여주며 데이터 엔지니어는 BI가 믿을 수 있는 데이터를 보게 만드는 사람이라고 연결한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Paimon vs Iceberg">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">사전 가이드 핵심</span><span>Paimon vs Iceberg</span></div>
+          <h2>둘 다 테이블 포맷이지만, 이번 프로젝트에서는 역할을 나눕니다</h2>
+          <div class="compare">
+            <div class="compare-card">
+              <span class="label accent-gold">Realtime Bronze</span>
+              <h3>Paimon</h3>
+              <ul>
+                <li>Kafka와 Flink 뒤에서 실시간 데이터를 받아둔다.</li>
+                <li>변경이 계속 들어오는 L0 Bronze에 둔다.</li>
+                <li>checkpoint, changelog, compaction을 이후에 본다.</li>
+              </ul>
+            </div>
+            <div class="compare-card">
+              <span class="label accent-purple">Batch Canonical</span>
+              <h3>Iceberg</h3>
+              <ul>
+                <li>Spark 배치가 만든 기준 테이블을 저장한다.</li>
+                <li>정제본과 집계본을 snapshot 기반으로 관리한다.</li>
+                <li>time travel, partition, rollback을 이후에 본다.</li>
+              </ul>
+            </div>
+          </div>
+          <p class="lead">사전 가이드는 공유되는 대로 1~3장과 7장 비교표만 먼저 읽으면 충분합니다.</p>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>“Paimon은 실시간 장부, Iceberg는 결산 장부” 문장을 사용한다.</li>
+              <li>나머지 상세는 4차시와 5차시에서 다시 돌아온다고 말한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="오늘의 완성본 미리보기">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">데모 미리보기</span><span>얇은 한 사이클</span></div>
+          <h2>오늘은 앞으로 만들 결과물을 먼저 보고, 실행 흐름만 짚습니다</h2>
+          <div class="lineage">
+            <div class="lineage-node accent-teal">Commerce Events<br>240건</div>
+            <div class="lineage-node accent-blue">Kafka<br>commerce-events</div>
+            <div class="lineage-node accent-gold">Paimon<br>Bronze</div>
+            <div class="lineage-node accent-green">Spark<br>Transform</div>
+            <div class="lineage-node accent-purple">Iceberg<br>Analytics</div>
+          </div>
+          <div class="demo-steps">
+            <div class="demo-step accent-teal"><h3>1. Kafka</h3><code>reset-kafka-topic.sh<br>produce-kafka.sh<br>consume-kafka.sh</code></div>
+            <div class="demo-step accent-gold"><h3>2. Paimon Bronze</h3><code>reset-paimon-bronze.sh<br>run-flink-paimon-bronze.sh<br>query-paimon-bronze.sh</code></div>
+            <div class="demo-step accent-purple"><h3>3. Iceberg Analytics</h3><code>reset-iceberg-tables.sh<br>run-spark-iceberg-transform.sh<br>query-iceberg-tables.sh</code></div>
+          </div>
+          <p class="lead">명령어는 암기 대상이 아니라, “지금 어느 레이어를 확인하는가”를 보여주는 표지판입니다.</p>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>명령어를 전부 설명하지 말고, 지금 어느 레이어를 보는지만 말한다.</li>
+              <li>실행이 느리면 결과 캡처와 정리 문서로 전환한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="결과 화면: BI와 Metadata">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">결과 화면</span><span>소비와 관리</span></div>
+          <h2>파이프라인의 끝은 로그가 아니라 사람이 보는 지표입니다</h2>
+          <p class="lead">이 화면들은 선택 데모입니다. 수업의 필수 목표는 지표가 믿을 수 있게 만들어지는 흐름을 설명하는 것입니다.</p>
+          <div class="demo-grid">
+            <div class="screen-preview">
+              <h3>Streamlit BI</h3>
+              <p class="subtitle">이벤트 타입별 건수, 카테고리/브랜드별 매출</p>
+              <div class="mini-chart" aria-label="이벤트 타입별 막대 차트 예시">
+                <div class="bar" style="height: 78%"><span>view</span></div>
+                <div class="bar" style="height: 46%"><span>cart</span></div>
+                <div class="bar" style="height: 28%"><span>remove</span></div>
+                <div class="bar" style="height: 52%"><span>purchase</span></div>
+                <div class="bar" style="height: 64%"><span>revenue</span></div>
+              </div>
+            </div>
+            <div class="screen-preview">
+              <h3>OpenMetadata</h3>
+              <p class="subtitle">데이터가 어디서 와서 어디로 가는지 lineage로 확인</p>
+              <div class="lineage">
+                <div class="lineage-node accent-teal">Kafka</div>
+                <div class="lineage-node accent-gold">Paimon</div>
+                <div class="lineage-node accent-green">Spark</div>
+                <div class="lineage-node accent-purple">Iceberg</div>
+                <div class="lineage-node accent-red">BI</div>
+              </div>
+            </div>
+          </div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>BI는 선택 데모라고 말한다. 수업 필수 범위는 파이프라인과 데이터 신뢰성이다.</li>
+              <li>OpenMetadata는 학생 실습 필수가 아니라 멘토 데모로 짧게 보여준다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="8회차 로드맵">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">로드맵</span><span>최종 발표까지</span></div>
+          <h2>매 회차 결과물이 최종 프로젝트에 쌓입니다</h2>
+          <div class="roadmap">
+            <div class="week accent-teal"><div class="session">1차시</div><div class="topic">전체 지도</div><div class="result">아키텍처 그림</div></div>
+            <div class="week accent-blue"><div class="session">2차시</div><div class="topic">환경 구축</div><div class="result">Docker 실행, 컨테이너 역할</div></div>
+            <div class="week accent-teal"><div class="session">3차시</div><div class="topic">Kafka</div><div class="result">Producer, topic, lag</div></div>
+            <div class="week accent-gold"><div class="session">4차시</div><div class="topic">Flink/Paimon</div><div class="result">실시간 적재, checkpoint</div></div>
+            <div class="week accent-purple"><div class="session">5차시</div><div class="topic">Spark/Iceberg</div><div class="result">배치 변환, snapshot</div></div>
+            <div class="week accent-red"><div class="session">6차시</div><div class="topic">장애 대응</div><div class="result">부하 테스트 리포트</div></div>
+            <div class="week accent-green"><div class="session">7차시</div><div class="topic">품질/서빙</div><div class="result">품질 체크, 선택 BI</div></div>
+            <div class="week accent-blue"><div class="session">8차시</div><div class="topic">발표</div><div class="result">README, 발표자료</div></div>
+          </div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>각 회차 결과물이 최종 발표와 포트폴리오 재료가 된다고 말한다.</li>
+              <li>환경 구축과 장애 대응이 실무형 수업의 핵심이라고 짚는다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="장애 대응은 나중에 깊게">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">운영 관점</span><span>6차시 예고</span></div>
+          <h2>1차시에서는 문제 이름만 지도에 표시합니다</h2>
+          <div class="grid three">
+            <div class="card"><h3>Kafka lag</h3><p>처리 속도가 유입 속도를 따라가지 못할 때</p></div>
+            <div class="card"><h3>Flink checkpoint</h3><p>어디까지 처리했는지 안정적으로 기억하지 못할 때</p></div>
+            <div class="card"><h3>Small file</h3><p>작은 파일이 많아져 조회와 관리가 느려질 때</p></div>
+            <div class="card"><h3>Spark OOM</h3><p>배치 작업 메모리가 부족해 실패할 때</p></div>
+            <div class="card"><h3>잘못된 데이터</h3><p>기준 테이블이 오염되어 되돌려야 할 때</p></div>
+            <div class="card"><h3>조회 지연</h3><p>최종 사용자가 보는 지표가 늦게 뜰 때</p></div>
+          </div>
+          <p class="lead">이런 장애를 피하려고, 마지막 슬라이드의 5가지 질문을 매 회차 반복합니다.</p>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>오늘은 해결책을 설명하지 않는다. 어디서 문제가 생기는지만 표시한다.</li>
+              <li>6차시에 일부러 시스템을 느리게 만들거나 실패시키며 본다고 예고한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="1차시 미션">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">과제 + 2차시 준비</span><span>2차시 발표 재료</span></div>
+          <h2>1차시 미션은 “자기 언어로 다시 그리기”입니다</h2>
+          <div class="mission-grid">
+            <div class="card accent-teal">
+              <h3>개념 정리</h3>
+              <div class="checklist">
+                <div class="check"><span class="box"></span><span>전체 아키텍처를 본인 방식으로 다시 그리기</span></div>
+                <div class="check"><span class="box"></span><span>각 레이어의 역할과 “이 기술이 없다면?” 적기</span></div>
+                <div class="check"><span class="box"></span><span>궁금한 장애/병목 시나리오 1개 작성</span></div>
+              </div>
+            </div>
+            <div class="card accent-gold">
+              <h3>환경 정보</h3>
+              <ul class="artifact-list">
+                <li><span class="key">OS</span><span>macOS / Windows / Linux</span></li>
+                <li><span class="key">Mac</span><span>Apple Silicon 또는 Intel</span></li>
+                <li><span class="key">Windows</span><span>WSL2 설치 여부</span></li>
+                <li><span class="key">RAM</span><span>메모리 용량</span></li>
+                <li><span class="key">Docker</span><span>Docker Desktop 설치 여부</span></li>
+              </ul>
+            </div>
+          </div>
+          <p class="lead">슬라이드 필사가 아니라, 본인만의 키워드와 물음표가 중요합니다.</p>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>제출 형식은 Markdown, PDF, Notion 링크, 이미지 모두 가능하다고 안내한다.</li>
+              <li>환경 정보는 평가가 아니라 2차시 문제 예방용이라고 말한다.</li>
+              <li>AWS 계정은 필수가 아니며, 현재 준비 여부만 참고용으로 받는다고 말한다.</li>
+              <li>2차시 시작 후 일부 학생이 3분 내외로 발표한다고 말한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section class="slide" data-title="마무리 질문">
+        <div class="slide-inner">
+          <div class="slide-top"><span class="slide-tag">8회차 내내 쓸 질문</span><span>판단 기준</span></div>
+          <h2>앞으로 계속 반복할 질문입니다</h2>
+          <div class="grid two">
+            <div class="big-line">지금 이 데이터는 원천인가, 정제본인가, 집계본인가?</div>
+            <div class="big-line">이 작업은 append인가, upsert인가, overwrite인가?</div>
+            <div class="big-line">다시 실행해도 같은 결과가 나오는가?</div>
+            <div class="big-line">장애가 나면 어디부터 확인할 것인가?</div>
+            <div class="big-line">복구할 수 있는 기준점이 있는가?</div>
+          </div>
+          <details class="notes">
+            <summary>발표 메모</summary>
+            <ul>
+              <li>이 질문들이 실무형 데이터 엔지니어의 사고방식이라고 연결한다.</li>
+              <li>다음 2차시는 Docker Compose 환경과 컨테이너 역할을 직접 확인한다고 예고한다.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <div class="controls" aria-label="슬라이드 컨트롤">
+      <button type="button" id="prevBtn" aria-label="이전 슬라이드">&lt;</button>
+      <div class="progress" id="progress">1 / 17</div>
+      <button type="button" id="nextBtn" aria-label="다음 슬라이드">&gt;</button>
+      <button type="button" id="notesBtn" aria-label="발표 메모 토글">N</button>
+      <button type="button" id="overviewBtn" aria-label="전체 보기">O</button>
+    </div>
+    <div class="footer-hint">← → 이동 · N 메모 · O 전체</div>
+    <aside class="overview" id="overview" aria-label="슬라이드 전체 보기"></aside>
+  </div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const progress = document.getElementById("progress");
+    const overview = document.getElementById("overview");
+    let current = 0;
+
+    if (new URLSearchParams(window.location.search).has("export")) {
+      document.body.classList.add("export-mode");
+    }
+
+    function renderOverview() {
+      const grid = document.createElement("div");
+      grid.className = "overview-grid";
+      slides.forEach((slide, index) => {
+        const thumb = document.createElement("button");
+        thumb.className = "thumb";
+        thumb.type = "button";
+        thumb.innerHTML = `<div class="idx">${index + 1}</div><div class="title">${slide.dataset.title || "Untitled"}</div>`;
+        thumb.addEventListener("click", () => {
+          overview.classList.remove("open");
+          go(index);
+        });
+        grid.appendChild(thumb);
+      });
+      overview.replaceChildren(grid);
+    }
+
+    function go(index) {
+      current = Math.max(0, Math.min(index, slides.length - 1));
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle("active", slideIndex === current);
+      });
+      progress.textContent = `${current + 1} / ${slides.length}`;
+      window.location.hash = `slide-${current + 1}`;
+    }
+
+    function toggleNotes() {
+      const notes = slides[current].querySelector(".notes");
+      if (notes) {
+        notes.classList.toggle("open");
+        if (notes.classList.contains("open")) {
+          notes.setAttribute("open", "");
+        } else {
+          notes.removeAttribute("open");
+        }
+      }
+    }
+
+    document.getElementById("prevBtn").addEventListener("click", () => go(current - 1));
+    document.getElementById("nextBtn").addEventListener("click", () => go(current + 1));
+    document.getElementById("notesBtn").addEventListener("click", toggleNotes);
+    document.getElementById("overviewBtn").addEventListener("click", () => overview.classList.toggle("open"));
+    overview.addEventListener("click", (event) => {
+      if (event.target === overview) {
+        overview.classList.remove("open");
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+        event.preventDefault();
+        go(current + 1);
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        go(current - 1);
+      }
+      if (event.key.toLowerCase() === "n") {
+        toggleNotes();
+      }
+      if (event.key.toLowerCase() === "o") {
+        overview.classList.toggle("open");
+      }
+      if (event.key === "Escape") {
+        overview.classList.remove("open");
+      }
+    });
+
+    renderOverview();
+    const match = window.location.hash.match(/slide-(\d+)/);
+    go(match ? Number(match[1]) - 1 : 0);
+  </script>
+</body>
+</html>

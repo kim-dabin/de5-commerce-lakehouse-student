@@ -1,0 +1,10 @@
+.git
+.DS_Store
+Downloads
+class-prep
+docs
+data/medium
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/venv
