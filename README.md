@@ -27,18 +27,11 @@ cd sessions/1차시
 
 각 차시 폴더 안의 `DOWNLOAD_GUIDE.md`를 먼저 읽고, 그 폴더 안에서 명령을 실행합니다.
 
-## 차시별 폴더
+## 현재 공개된 차시
 
 | 차시 | 폴더 | 주제 |
 |---:|---|---|
 | 1차시 | `sessions/1차시` | 전체 아키텍처 청사진 |
-| 2차시 | `sessions/2차시` | 로컬 Docker 실습 환경 |
-| 3차시 | `sessions/3차시` | Kafka 이벤트 수집 |
-| 4차시 | `sessions/4차시` | Flink와 Paimon Bronze |
-| 5차시 | `sessions/5차시` | Spark와 Iceberg Batch BI |
-| 6차시 | `sessions/6차시` | Airflow 오케스트레이션 |
-| 7차시 | `sessions/7차시` | StarRocks Realtime OLAP와 BI |
-| 8차시 | `sessions/8차시` | 최종 포트폴리오 정리 |
 
 ## 실습 전 공통 확인
 
