@@ -25,6 +25,7 @@ if command -v curl >/dev/null 2>&1; then
   curl -fsS http://localhost:8181/v1/config || {
     echo
     echo "Iceberg REST endpoint is not ready or does not expose /v1/config yet."
+    echo "Wait a few seconds and rerun ./scripts/smoke-test.sh if the container is still starting."
   }
 else
   echo "curl not found; skip REST endpoint check"

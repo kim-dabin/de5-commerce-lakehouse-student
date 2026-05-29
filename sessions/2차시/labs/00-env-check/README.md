@@ -22,10 +22,10 @@ cp .env.example .env
 
 - 권장 host RAM: 16GB 이상
 - 권장 Docker Desktop memory: 10~12GB
-- OpenMetadata까지 함께 실행하려면 Docker memory 12GB 이상이 사실상 필요합니다.
+- Windows 사용자는 WSL2 Ubuntu 또는 Git Bash에서 명령을 실행합니다.
 
 ## 수업 중 사용할 질문
 
 - Docker는 설치되어 있지만 daemon이 꺼져 있는 상태와 아예 설치되지 않은 상태는 어떻게 구분할 수 있을까요?
 - host RAM과 Docker Desktop memory limit은 왜 따로 봐야 할까요?
-- 수업 실습에서 OpenMetadata를 필수로 넣지 않은 이유는 무엇일까요?
+- 수업 직전에 처음 이미지를 내려받으면 어떤 문제가 생길까요?

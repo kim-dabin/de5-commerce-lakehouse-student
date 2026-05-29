@@ -177,7 +177,6 @@ services:
       JVM_ARGS: "-Xms512m -Xmx1024m"
     volumes:
       - ./labs:/workspace/labs
-      - ./solutions:/workspace/solutions
       - ./data:/workspace/data
       - flink-checkpoints:/opt/flink/checkpoints
       - paimon-warehouse:/warehouse/paimon
@@ -203,7 +202,6 @@ services:
       JVM_ARGS: "-Xms512m -Xmx1024m"
     volumes:
       - ./labs:/workspace/labs
-      - ./solutions:/workspace/solutions
       - ./data:/workspace/data
       - flink-checkpoints:/opt/flink/checkpoints
       - paimon-warehouse:/warehouse/paimon
@@ -230,7 +228,6 @@ services:
         rest.address: flink-jobmanager
     volumes:
       - ./labs:/workspace/labs
-      - ./solutions:/workspace/solutions
       - ./data:/workspace/data
       - paimon-warehouse:/warehouse/paimon
     networks:
@@ -285,7 +282,6 @@ services:
       SPARK_LOCAL_IP: spark-client
     volumes:
       - ./labs:/workspace/labs
-      - ./solutions:/workspace/solutions
       - ./data:/workspace/data
       - ./scripts:/workspace/scripts
       - paimon-warehouse:/warehouse/paimon

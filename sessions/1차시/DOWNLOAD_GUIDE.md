@@ -1,35 +1,29 @@
-# 01차시 자료: 전체 아키텍처 청사진
+# 1차시 다운로드/실행 가이드
 
-이 폴더는 데이터 엔지니어 부트캠프 5기 B주제 라이브 스터디의 01차시 수강생 실습 자료입니다.
+## GitHub로 받은 경우
 
-## 이번 차시 범위
+```bash
+git clone https://github.com/kim-dabin/de5-commerce-lakehouse-student.git
+cd de5-commerce-lakehouse-student
+git pull
+cd sessions/1차시
+```
 
-커머스 이벤트 데이터, Realtime OLAP과 Batch Lakehouse BI의 차이, 8회차 전체 결과물 지도를 이해합니다.
+## 처음 실행 전 공통 확인
 
-## 먼저 확인할 것
-
-1. Docker Desktop을 실행합니다.
-2. 터미널에서 압축을 푼 폴더로 이동합니다.
-3. 처음 실행할 때는 아래 공통 명령을 먼저 실행합니다.
+Windows 사용자는 WSL2 Ubuntu 또는 Git Bash에서 실행해주세요.
 
 ```bash
 cp .env.example .env
 ./scripts/check-env.sh
 ```
 
-## 대표 실행 명령
+## 이번 차시 대표 명령
 
 ```bash
 # 압축을 푼 뒤 docs/session-01-slides.html 파일을 브라우저로 열어주세요.
 ```
 
-## 제출/질문 기준
+실행이 실패하면 실행한 명령어와 터미널 에러 메시지를 함께 캡처해 디스코드 해당 차시 채널에 올려주세요.
 
-- 과제 제출은 디스코드의 해당 차시 채널에 올립니다.
-- 실행이 실패하면 전체 화면보다 터미널의 에러 메시지와 실행한 명령어를 함께 캡처합니다.
-- 로컬 PC 성능에 따라 첫 Docker 이미지 다운로드와 Spark 패키지 다운로드는 시간이 걸릴 수 있습니다.
-
-## 포함하지 않은 것
-
-- 멘토 운영 문서, 출석/녹화 관리 문서, 내부 검토 자료는 수강생 배포 자료에 포함하지 않습니다.
-- 참고 답안은 기본적으로 포함하지 않습니다. 멘토가 수업 이후 공유할 때만 `INCLUDE_SOLUTIONS=1`로 패키지를 다시 생성합니다.
+첫 Docker 이미지 다운로드/빌드는 PC와 네트워크에 따라 30분 이상 걸릴 수 있습니다.

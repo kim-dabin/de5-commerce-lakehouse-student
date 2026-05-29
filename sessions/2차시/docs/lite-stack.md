@@ -69,18 +69,6 @@ docker compose -f docker-compose.lite.yml down
 ./scripts/reset-local-state.sh
 ```
 
-멘토 전용 OpenMetadata 데모까지 함께 중지하려면 아래 옵션을 사용합니다.
-
-```bash
-./scripts/reset-local-state.sh --with-openmetadata
-```
-
-OpenMetadata의 로컬 MySQL bind data까지 삭제해야 할 때만 아래 강한 초기화 옵션을 사용합니다.
-
-```bash
-./scripts/reset-local-state.sh --purge-openmetadata-bind-data
-```
-
 ## 주요 URL
 
 - Flink: http://localhost:8081

@@ -4,12 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.lite.yml}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-de5-lite}"
-OPENMETADATA_COMPOSE_PROJECT="${OPENMETADATA_COMPOSE_PROJECT:-openmetadata}"
-OPENMETADATA_COMPOSE_FILE="${OPENMETADATA_COMPOSE_FILE:-openmetadata/docker-compose.openmetadata.yml}"
 DASHBOARD_TMUX_SESSION="${DASHBOARD_TMUX_SESSION:-de5-lite-dashboard}"
 
-WITH_OPENMETADATA=false
-PURGE_OPENMETADATA_BIND_DATA=false
 DRY_RUN=false
 
 usage() {
@@ -24,9 +20,6 @@ Default reset scope:
   - remove Lite stack volumes: Kafka, MinIO, Paimon, Iceberg, Spark Ivy cache, Airflow DB/logs
 
 Options:
-  --with-openmetadata              Also stop OpenMetadata and remove its Docker volumes.
-  --purge-openmetadata-bind-data   Also delete openmetadata/docker-volume/db-data.
-                                   Use only when you want a fully fresh OpenMetadata MySQL state.
   --dry-run                        Print commands without running them.
   -h, --help                       Show this help.
 EOF
@@ -41,13 +34,6 @@ run() {
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --with-openmetadata)
-      WITH_OPENMETADATA=true
-      ;;
-    --purge-openmetadata-bind-data)
-      PURGE_OPENMETADATA_BIND_DATA=true
-      WITH_OPENMETADATA=true
-      ;;
     --dry-run)
       DRY_RUN=true
       ;;
@@ -87,25 +73,6 @@ if [[ -f "${COMPOSE_FILE}" ]]; then
     --remove-orphans
 else
   echo "Lite compose file not found: ${COMPOSE_FILE}"
-fi
-
-if [[ "${WITH_OPENMETADATA}" == "true" ]]; then
-  echo
-  echo "Resetting OpenMetadata state."
-  if [[ -f "${OPENMETADATA_COMPOSE_FILE}" ]]; then
-    run docker compose \
-      -p "${OPENMETADATA_COMPOSE_PROJECT}" \
-      -f "${OPENMETADATA_COMPOSE_FILE}" \
-      down \
-      --volumes \
-      --remove-orphans
-  else
-    echo "OpenMetadata compose file not found: ${OPENMETADATA_COMPOSE_FILE}"
-  fi
-
-  if [[ "${PURGE_OPENMETADATA_BIND_DATA}" == "true" ]]; then
-    run rm -rf openmetadata/docker-volume/db-data
-  fi
 fi
 
 echo
