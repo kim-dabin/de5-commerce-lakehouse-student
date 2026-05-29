@@ -20,6 +20,17 @@ cp .env.example .env
 ./scripts/check-env.sh
 ```
 
+## 2차시 시작 전 권장 작업
+
+1차시 과제를 제출한 뒤, 가능하면 아래 Docker 실행까지 미리 해봅니다. 첫 Docker 이미지 다운로드/빌드는 PC와 네트워크에 따라 30분 이상 걸릴 수 있습니다.
+
+```bash
+docker compose -f docker-compose.lite.yml up -d --build
+./scripts/smoke-test.sh
+```
+
+수업 시작 후에는 1차시 과제 일부를 짧게 공유한 뒤, Docker Compose로 로컬 실습 환경을 함께 점검합니다.
+
 ## 대표 실행 명령
 
 ```bash

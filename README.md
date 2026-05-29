@@ -34,6 +34,12 @@ cd sessions/2차시
 | 1차시 | `sessions/1차시` | 전체 아키텍처 청사진 |
 | 2차시 | `sessions/2차시` | 로컬 Docker 실습 환경 |
 
+## 현재 해야 할 일
+
+- 1차시 과제 확인: `sessions/1차시/ASSIGNMENT.md`
+- 2차시 사전 준비: `sessions/2차시/DOWNLOAD_GUIDE.md`
+- 2차시 시작 전 가능하면 Docker 이미지 빌드까지 미리 진행
+
 ## 실습 전 공통 확인
 
 각 차시 폴더에서 아래 명령으로 환경을 확인합니다.
