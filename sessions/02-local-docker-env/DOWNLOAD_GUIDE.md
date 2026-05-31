@@ -25,6 +25,8 @@ cp .env.example .env
 ```bash
 docker compose -f docker-compose.lite.yml up -d --build
 ./scripts/smoke-test.sh
+./scripts/produce-kafka.sh --max-events 10 --rate-per-second 2
+MAX_MESSAGES=5 ./scripts/consume-kafka.sh
 ```
 
 ## 이번 차시 대표 명령

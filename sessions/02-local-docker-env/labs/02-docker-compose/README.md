@@ -15,6 +15,8 @@ cp .env.example .env
 ./scripts/check-env.sh
 docker compose -f docker-compose.lite.yml up -d --build
 ./scripts/smoke-test.sh
+./scripts/produce-kafka.sh --max-events 10 --rate-per-second 2
+MAX_MESSAGES=5 ./scripts/consume-kafka.sh
 ```
 
 첫 실행은 Docker image 다운로드 때문에 시간이 오래 걸릴 수 있습니다.
@@ -49,3 +51,4 @@ docker compose -f docker-compose.lite.yml down
 - container가 떠 있다는 것과 애플리케이션이 ready 상태라는 것은 어떻게 다를까요?
 - 수업용 Docker Compose와 프로덕션 배포는 어떤 점이 다를까요?
 - 실습이 실패했을 때 바로 전체 삭제를 하기보다 어떤 로그를 먼저 봐야 할까요?
+- 과거 로그 파일을 Kafka topic에 replay하면 어떤 점에서 스트리밍 입력처럼 볼 수 있을까요?

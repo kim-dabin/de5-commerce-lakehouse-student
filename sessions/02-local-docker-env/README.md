@@ -27,15 +27,21 @@ cp .env.example .env
 ```bash
 docker compose -f docker-compose.lite.yml up -d --build
 ./scripts/smoke-test.sh
+./scripts/produce-kafka.sh --max-events 10 --rate-per-second 2
+MAX_MESSAGES=5 ./scripts/consume-kafka.sh
 ```
 
 수업 시작 후에는 1차시 과제를 바탕으로 전원 데일리 스탠드업을 짧게 진행한 뒤, Docker Compose로 로컬 실습 환경을 함께 점검합니다.
+
+환경 점검이 끝나면 과거 커머스 행동 로그 파일을 Kafka topic에 10건만 replay하고, consumer로 실제 JSON 이벤트를 읽어봅니다. Kafka의 자세한 구조는 3차시에서 다루고, 2차시에서는 "배치 로그를 스트림처럼 흘려보낸다"는 감각만 확인합니다.
 
 ## 대표 실행 명령
 
 ```bash
 docker compose -f docker-compose.lite.yml up -d --build
 ./scripts/smoke-test.sh
+./scripts/produce-kafka.sh --max-events 10 --rate-per-second 2
+MAX_MESSAGES=5 ./scripts/consume-kafka.sh
 ```
 
 ## 제출/질문 기준
