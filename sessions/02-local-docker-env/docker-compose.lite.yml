@@ -5,6 +5,8 @@ services:
     image: ${KAFKA_IMAGE:-apache/kafka:3.9.1}
     hostname: kafka
     container_name: de5-kafka
+    extra_hosts:
+      - "kafka:127.0.0.1"
     ports:
       - "9092:9092"
     environment:
