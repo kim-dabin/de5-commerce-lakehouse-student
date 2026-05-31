@@ -16,6 +16,18 @@ docker compose -f "${COMPOSE_FILE}" exec -T kafka \
   --topic "${TOPIC}"
 
 echo
+echo "== Kafka UI =="
+if command -v curl >/dev/null 2>&1; then
+  curl -fsSI "http://localhost:${KAFKA_UI_HOST_PORT:-8088}" >/dev/null && \
+    echo "Kafka UI is reachable: http://localhost:${KAFKA_UI_HOST_PORT:-8088}" || {
+      echo "Kafka UI is not reachable yet."
+      echo "Wait a few seconds and rerun ./scripts/smoke-test.sh if the container is still starting."
+    }
+else
+  echo "curl not found; skip Kafka UI endpoint check"
+fi
+
+echo
 echo "== MinIO buckets =="
 docker compose -f "${COMPOSE_FILE}" run --rm minio-init
 

@@ -36,6 +36,17 @@ MAX_MESSAGES=5 ./scripts/consume-kafka.sh
 
 환경 점검이 끝나면 과거 커머스 행동 로그 파일을 Kafka topic에 10건만 replay하고, consumer로 실제 JSON 이벤트를 읽어봅니다. Kafka의 자세한 구조는 3차시에서 다루고, 2차시에서는 "배치 로그를 스트림처럼 흘려보낸다"는 감각만 확인합니다.
 
+## 브라우저에서 확인할 화면
+
+| 서비스 | URL | 로그인 |
+|---|---|---|
+| Kafka UI | http://localhost:8088 | 없음 |
+| Flink UI | http://localhost:8081 | 없음 |
+| MinIO Console | http://localhost:9001 | `minioadmin` / `minioadmin` |
+| StarRocks FE | http://localhost:8030 | 웹 확인용, SQL은 `root` / 비밀번호 없음 |
+
+Kafka UI에서는 `de5-local` cluster를 선택한 뒤 `Topics`에서 `commerce-events`를 확인합니다. 이벤트를 replay한 뒤에는 topic 상세 화면에서 message를 조회할 수 있습니다.
+
 ## 대표 실행 명령
 
 ```bash

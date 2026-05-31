@@ -22,9 +22,10 @@ docker compose -f docker-compose.lite.yml ps
 MAX_MESSAGES=5 ./scripts/consume-kafka.sh
 ```
 
-추가로 Flink UI 또는 MinIO Console 중 하나를 브라우저로 열어 캡처합니다.
+추가로 Kafka UI, Flink UI, MinIO Console 중 하나를 브라우저로 열어 캡처합니다.
 
 ```text
+Kafka UI: http://localhost:8088
 Flink UI: http://localhost:8081
 MinIO Console: http://localhost:9001
 ```

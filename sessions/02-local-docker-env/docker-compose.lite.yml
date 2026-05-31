@@ -58,6 +58,22 @@ services:
       - lakehouse
     restart: "no"
 
+  kafka-ui:
+    image: ${KAFKA_UI_IMAGE:-provectuslabs/kafka-ui:latest}
+    hostname: kafka-ui
+    container_name: de5-kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "${KAFKA_UI_HOST_PORT:-8088}:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: de5-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:19092
+      DYNAMIC_CONFIG_ENABLED: "true"
+    networks:
+      - lakehouse
+
   minio:
     image: ${MINIO_IMAGE:-minio/minio:latest}
     hostname: minio
