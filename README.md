@@ -31,12 +31,12 @@ cd sessions/02-local-docker-env
 
 | 차시 | 폴더 | 주제 |
 |---:|---|---|
-| 1차시 | `sessions/1차시` | 전체 아키텍처 청사진 |
+| 1차시 | `sessions/01-architecture-blueprint` | 전체 아키텍처 청사진 |
 | 2차시 | `sessions/02-local-docker-env` | 로컬 Docker 실습 환경 |
 
 ## 현재 해야 할 일
 
-- 1차시 과제 확인: `sessions/1차시/ASSIGNMENT.md`
+- 1차시 과제 확인: `sessions/01-architecture-blueprint/ASSIGNMENT.md`
 - 2차시 사전 준비: `sessions/02-local-docker-env/DOWNLOAD_GUIDE.md`
 - 2차시 시작 전 가능하면 Docker 이미지 빌드까지 미리 진행
 

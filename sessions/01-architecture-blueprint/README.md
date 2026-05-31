@@ -10,7 +10,7 @@
 
 1. Docker Desktop을 실행합니다.
 2. 터미널에서 현재 차시 폴더로 이동합니다.
-   - GitHub로 받은 경우: `de5-commerce-lakehouse-student/sessions/1차시`
+   - GitHub로 받은 경우: `de5-commerce-lakehouse-student/sessions/01-architecture-blueprint`
    - zip으로 받은 경우: 압축을 푼 1차시 자료 폴더
 3. Windows 사용자는 WSL2 Ubuntu 또는 Git Bash에서 명령을 실행합니다.
 4. 처음 실행할 때는 아래 공통 명령을 먼저 실행합니다.

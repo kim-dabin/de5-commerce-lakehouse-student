@@ -6,7 +6,7 @@
 git clone https://github.com/kim-dabin/de5-commerce-lakehouse-student.git
 cd de5-commerce-lakehouse-student
 git pull
-cd sessions/1차시
+cd sessions/01-architecture-blueprint
 ```
 
 ## 처음 실행 전 공통 확인
