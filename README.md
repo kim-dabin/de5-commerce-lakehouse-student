@@ -39,6 +39,7 @@ cd sessions/02-local-docker-env
 - 1차시 과제 확인: `sessions/01-architecture-blueprint/ASSIGNMENT.md`
 - 2차시 사전 준비: `sessions/02-local-docker-env/DOWNLOAD_GUIDE.md`
 - 2차시 시작 전 가능하면 Docker 이미지 빌드까지 미리 진행
+- 선택 참고: `resources/openmetadata-lineage/README.md`에서 OpenMetadata 리니지 예시 확인
 
 ## 실습 전 공통 확인
 
@@ -50,6 +51,12 @@ cp .env.example .env
 ```
 
 Docker Desktop을 먼저 실행해야 합니다.
+
+## 참고 리소스
+
+| 리소스 | 경로 | 용도 |
+|---|---|---|
+| OpenMetadata 리니지 예시 | `resources/openmetadata-lineage/README.md` | 데이터 카탈로그/리니지 관점으로 파이프라인을 읽는 참고 자료 |
 
 ## 주의
 

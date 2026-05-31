@@ -12,6 +12,7 @@ cd sessions/02-local-docker-env
 ## 처음 실행 전 공통 확인
 
 Windows 사용자는 WSL2 Ubuntu 또는 Git Bash에서 실행해주세요.
+Docker Desktop memory는 가능하면 10-12GB 정도로 설정하고, 다른 무거운 Docker 프로젝트는 중지한 뒤 진행해주세요.
 
 ```bash
 cp .env.example .env
