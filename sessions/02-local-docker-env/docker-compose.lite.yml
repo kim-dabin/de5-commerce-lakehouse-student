@@ -96,7 +96,11 @@ services:
         && (mc admin user svcacct add \
           --access-key ${STARROCKS_MINIO_ACCESS_KEY:-AAAAAAAAAAAAAAAAAAAA} \
           --secret-key ${STARROCKS_MINIO_SECRET_KEY:-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB} \
-          local ${MINIO_ROOT_USER:-minioadmin} || true) \
+          local ${MINIO_ROOT_USER:-minioadmin} 2>/tmp/minio-svcacct.err \
+          || case "$$(cat /tmp/minio-svcacct.err)" in \
+            *already*) echo "StarRocks MinIO service account already exists; skip" ;; \
+            *) cat /tmp/minio-svcacct.err >&2 && exit 1 ;; \
+          esac) \
         && mc ls local
     networks:
       - lakehouse
