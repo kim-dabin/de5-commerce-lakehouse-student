@@ -6,7 +6,7 @@
 git clone https://github.com/kim-dabin/de5-commerce-lakehouse-student.git
 cd de5-commerce-lakehouse-student
 git pull
-cd sessions/2차시
+cd sessions/02-local-docker-env
 ```
 
 ## 처음 실행 전 공통 확인

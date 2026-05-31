@@ -22,7 +22,7 @@ git pull
 그 다음 해당 차시 폴더로 이동합니다. 예를 들어 2차시 수업 전에는 아래처럼 이동합니다.
 
 ```bash
-cd sessions/2차시
+cd sessions/02-local-docker-env
 ```
 
 각 차시 폴더 안의 `DOWNLOAD_GUIDE.md`를 먼저 읽고, 그 폴더 안에서 명령을 실행합니다.
@@ -32,12 +32,12 @@ cd sessions/2차시
 | 차시 | 폴더 | 주제 |
 |---:|---|---|
 | 1차시 | `sessions/1차시` | 전체 아키텍처 청사진 |
-| 2차시 | `sessions/2차시` | 로컬 Docker 실습 환경 |
+| 2차시 | `sessions/02-local-docker-env` | 로컬 Docker 실습 환경 |
 
 ## 현재 해야 할 일
 
 - 1차시 과제 확인: `sessions/1차시/ASSIGNMENT.md`
-- 2차시 사전 준비: `sessions/2차시/DOWNLOAD_GUIDE.md`
+- 2차시 사전 준비: `sessions/02-local-docker-env/DOWNLOAD_GUIDE.md`
 - 2차시 시작 전 가능하면 Docker 이미지 빌드까지 미리 진행
 
 ## 실습 전 공통 확인
