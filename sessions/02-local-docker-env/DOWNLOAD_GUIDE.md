@@ -39,3 +39,5 @@ docker compose -f docker-compose.lite.yml up -d --build
 실행이 실패하면 실행한 명령어와 터미널 에러 메시지를 함께 캡처해 디스코드 해당 차시 채널에 올려주세요.
 
 첫 Docker 이미지 다운로드/빌드는 PC와 네트워크에 따라 30분 이상 걸릴 수 있습니다.
+
+수업 후 과제는 `ASSIGNMENT.md`를 기준으로 제출합니다. 단순 실행 캡처뿐 아니라 `docker compose logs --tail=80 kafka`, `docker stats --no-stream` 결과를 활용한 운영 관찰도 포함합니다.

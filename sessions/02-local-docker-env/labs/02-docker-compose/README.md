@@ -52,3 +52,4 @@ docker compose -f docker-compose.lite.yml down
 - 수업용 Docker Compose와 프로덕션 배포는 어떤 점이 다를까요?
 - 실습이 실패했을 때 바로 전체 삭제를 하기보다 어떤 로그를 먼저 봐야 할까요?
 - 과거 로그 파일을 Kafka topic에 replay하면 어떤 점에서 스트리밍 입력처럼 볼 수 있을까요?
+- `docker stats --no-stream`에서 memory 사용량이 큰 컨테이너를 보면 어떤 운영 가설을 세울 수 있을까요?
