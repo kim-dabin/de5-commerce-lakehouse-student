@@ -66,7 +66,7 @@ MAX_MESSAGES=5 \
 기대 출력입니다.
 
 ```text
-sess-... | {"id":"ux-...","event_type":"product_view","session_id":"sess-...",...}
+sess-... | {"id":"ux-...","event_type":"product_view","user_session":"sess-...",...}
 ```
 
 왼쪽 값은 Kafka message key이고, 오른쪽 JSON이 실제 event payload입니다.
@@ -116,7 +116,7 @@ order-status-events   7,886건
 ## 수업 중 사용할 질문
 
 - message key를 바꾸면 partition 분배가 어떻게 달라질까요?
-- ux-events는 왜 `session_id`를 key로 쓸까요?
+- ux-events는 왜 `user_session`을 key로 쓸까요?
 - review-events는 왜 `review_id`를 key로 쓸까요?
 - order-status-events는 왜 `order_id`를 key로 쓸까요?
 - offset은 무엇을 나타낼까요?

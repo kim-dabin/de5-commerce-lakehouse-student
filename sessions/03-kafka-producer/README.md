@@ -95,7 +95,7 @@ sent=100 topic=ux-events input=/workspace/data/sample/olist/ux_events.jsonl
 해석:
 
 ```text
-key는 session_id입니다.
+key는 user_session입니다.
 같은 세션의 행동 흐름을 같은 partition에 모아 순서를 해석하기 쉽게 하기 위한 설계입니다.
 ```
 
@@ -113,14 +113,14 @@ MAX_MESSAGES=5 \
 확인할 것:
 
 ```text
-<message-key> | {"id":"...","event_type":"...","session_id":"...","product_id":...}
+<message-key> | {"id":"...","event_type":"...","user_session":"...","product_id":...}
 ```
 
 해석:
 
 ```text
 왼쪽은 Kafka message key이고, 오른쪽은 실제 JSON payload입니다.
-message key와 payload 안의 session_id가 같은지 확인합니다.
+message key와 payload 안의 user_session이 같은지 확인합니다.
 ```
 
 ## 5. offset과 lag 확인
@@ -185,7 +185,7 @@ topic별 message key:
 
 | Topic | Message key | 이유 |
 |---|---|---|
-| `ux-events` | `session_id` | 같은 세션의 행동 순서 확인 |
+| `ux-events` | `user_session` | 같은 세션의 행동 순서 확인 |
 | `review-events` | `review_id` | 같은 리뷰의 상태 변화 순서 확인 |
 | `order-status-events` | `order_id` | 같은 주문의 상태 변화 순서 확인 |
 

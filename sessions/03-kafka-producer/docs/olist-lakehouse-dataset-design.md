@@ -50,7 +50,7 @@ CSV 파서 기준 row count:
 
 ```text
 ux-events
-  key: session_id
+  key: user_session
   storage model: append
 
 review-events

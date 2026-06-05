@@ -70,7 +70,7 @@ GROUP_ID=de5-debug-consumer KAFKA_TOPIC=ux-events MAX_MESSAGES=5 ./scripts/consu
 대표 출력입니다.
 
 ```text
-sess-... | {"id":"ux-...","event_id":"ux-...","event_time":"2017-...","event_type":"product_view","user_id":...,"session_id":"sess-...","product_id":...}
+sess-... | {"id":"ux-...","event_id":"ux-...","event_time":"2017-...","event_type":"product_view","user_id":...,"user_session":"sess-...","product_id":...}
 ```
 
 왼쪽 값은 Kafka message key이고, 오른쪽 JSON은 실제 payload입니다.

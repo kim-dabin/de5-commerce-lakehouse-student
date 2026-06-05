@@ -274,7 +274,7 @@ services:
       KAFKA_BOOTSTRAP_SERVER: kafka:19092
       KAFKA_TOPIC: ${KAFKA_TOPIC:-ux-events}
       KAFKA_INPUT: /workspace/data/sample/olist/ux_events.jsonl
-      KAFKA_KEY_FIELD: session_id
+      KAFKA_KEY_FIELD: user_session
     volumes:
       - ./labs:/workspace/labs
       - ./data:/workspace/data

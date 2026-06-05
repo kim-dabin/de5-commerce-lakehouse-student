@@ -12,6 +12,6 @@ fi
 ./scripts/produce-kafka.sh \
   --topic ux-events \
   --input "/workspace/${INPUT}" \
-  --key-field session_id \
+  --key-field user_session \
   "${QUIET_FLAG[@]}" \
   "$@"
