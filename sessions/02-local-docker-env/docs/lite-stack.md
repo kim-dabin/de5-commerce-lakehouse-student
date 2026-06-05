@@ -23,6 +23,7 @@ sample Commerce Events
 | 서비스 | 포트 | 역할 |
 |---|---:|---|
 | Kafka | 9092 | 로컬 KRaft broker |
+| Kafka UI | 8088 | Kafka topic/message browser |
 | Flink JobManager | 8081 | Flink Web UI |
 | MinIO S3 API | 9000 | Object storage API |
 | MinIO Console | 9001 | Object storage UI |
@@ -71,6 +72,7 @@ docker compose -f docker-compose.lite.yml down
 
 ## 주요 URL
 
+- Kafka UI: http://localhost:8088
 - Flink: http://localhost:8081
 - MinIO Console: http://localhost:9001
 - Iceberg REST: http://localhost:8181

@@ -16,8 +16,45 @@ docker compose -f "${COMPOSE_FILE}" exec -T kafka \
   --topic "${TOPIC}"
 
 echo
+echo "== Kafka UI =="
+if command -v curl >/dev/null 2>&1; then
+  curl -fsSI "http://localhost:${KAFKA_UI_HOST_PORT:-8088}" >/dev/null && \
+    echo "Kafka UI is reachable: http://localhost:${KAFKA_UI_HOST_PORT:-8088}" || {
+      echo "Kafka UI is not reachable yet."
+      echo "Wait a few seconds and rerun ./scripts/smoke-test.sh if the container is still starting."
+    }
+else
+  echo "curl not found; skip Kafka UI endpoint check"
+fi
+
+echo
 echo "== MinIO buckets =="
 docker compose -f "${COMPOSE_FILE}" run --rm minio-init
+
+echo
+echo "== Flink cluster and jobs =="
+if command -v curl >/dev/null 2>&1; then
+  echo "-- Flink overview --"
+  curl -fsS http://localhost:8081/overview || {
+    echo
+    echo "Flink REST endpoint is not ready yet."
+    echo "Wait a few seconds and rerun ./scripts/smoke-test.sh if the container is still starting."
+  }
+
+  echo
+  echo "-- Flink jobs --"
+  curl -fsS http://localhost:8081/jobs || {
+    echo
+    echo "Flink jobs endpoint is not ready yet."
+    echo "Wait a few seconds and rerun ./scripts/smoke-test.sh if the container is still starting."
+  }
+
+  echo
+  echo "Note: 2차시에는 아직 Flink 애플리케이션 잡을 제출하지 않으므로 running job이 0개여도 정상입니다."
+  echo "      여기서는 Flink 클러스터와 job 목록 API가 응답하는지만 확인합니다."
+else
+  echo "curl not found; skip Flink REST checks"
+fi
 
 echo
 echo "== Iceberg REST catalog config =="
@@ -30,6 +67,16 @@ if command -v curl >/dev/null 2>&1; then
 else
   echo "curl not found; skip REST endpoint check"
 fi
+
+echo
+echo "== StarRocks cluster =="
+docker compose -f "${COMPOSE_FILE}" exec -T starrocks-fe \
+  mysql -uroot -h starrocks-fe -P9030 \
+  -e "SHOW FRONTENDS; SHOW COMPUTE NODES;" || {
+    echo
+    echo "StarRocks FE/CN is not ready yet."
+    echo "Wait a few seconds and rerun ./scripts/smoke-test.sh if the container is still starting."
+  }
 
 echo
 echo "Smoke test completed."

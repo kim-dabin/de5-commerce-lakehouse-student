@@ -14,6 +14,8 @@ outputs/
 *.log
 *.tmp
 Downloads/
+data/raw/olist/*.csv
+data/derived/olist/
 openmetadata/docker-volume/
 .idea/
 .vscode/

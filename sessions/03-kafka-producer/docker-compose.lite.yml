@@ -49,13 +49,13 @@ services:
           --bootstrap-server kafka:19092 \
           --create \
           --if-not-exists \
-          --topic ${KAFKA_TOPIC:-commerce-events} \
+          --topic ${KAFKA_TOPIC:-ux-events} \
           --partitions 3 \
           --replication-factor 1 \
         && /opt/kafka/bin/kafka-topics.sh \
           --bootstrap-server kafka:19092 \
           --describe \
-          --topic ${KAFKA_TOPIC:-commerce-events}
+          --topic ${KAFKA_TOPIC:-ux-events}
     networks:
       - lakehouse
     restart: "no"
@@ -272,9 +272,9 @@ services:
       - /workspace/labs/03-kafka-producer/producer.py
     environment:
       KAFKA_BOOTSTRAP_SERVER: kafka:19092
-      KAFKA_TOPIC: ${KAFKA_TOPIC:-commerce-events}
-      KAFKA_INPUT: /workspace/data/sample/commerce_events_sample.jsonl
-      KAFKA_KEY_FIELD: user_session
+      KAFKA_TOPIC: ${KAFKA_TOPIC:-ux-events}
+      KAFKA_INPUT: /workspace/data/sample/olist/ux_events.jsonl
+      KAFKA_KEY_FIELD: session_id
     volumes:
       - ./labs:/workspace/labs
       - ./data:/workspace/data
@@ -470,7 +470,7 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_WEBSERVER_SECRET_KEY:-de5-lite-airflow-secret}
       AIRFLOW__WEBSERVER__BASE_URL: ${AIRFLOW_WEBSERVER_BASE_URL:-http://localhost:${AIRFLOW_HOST_PORT:-8080}}
       DE5_KAFKA_BOOTSTRAP: kafka:19092
-      DE5_KAFKA_TOPIC: ${KAFKA_TOPIC:-commerce-events}
+      DE5_KAFKA_TOPIC: ${KAFKA_TOPIC:-ux-events}
       AIRFLOW__LINEAGE__BACKEND: ${AIRFLOW__LINEAGE__BACKEND:-}
       AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME: ${AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME:-}
       AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT: ${AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT:-}
@@ -517,7 +517,7 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_WEBSERVER_SECRET_KEY:-de5-lite-airflow-secret}
       AIRFLOW__WEBSERVER__BASE_URL: ${AIRFLOW_WEBSERVER_BASE_URL:-http://localhost:${AIRFLOW_HOST_PORT:-8080}}
       DE5_KAFKA_BOOTSTRAP: kafka:19092
-      DE5_KAFKA_TOPIC: ${KAFKA_TOPIC:-commerce-events}
+      DE5_KAFKA_TOPIC: ${KAFKA_TOPIC:-ux-events}
       AIRFLOW__LINEAGE__BACKEND: ${AIRFLOW__LINEAGE__BACKEND:-}
       AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME: ${AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME:-}
       AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT: ${AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT:-}

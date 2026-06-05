@@ -13,9 +13,10 @@ from confluent_kafka import Producer
 
 
 class ProduceStats:
-    def __init__(self) -> None:
+    def __init__(self, quiet: bool = False) -> None:
         self.delivered = 0
         self.failed = 0
+        self.quiet = quiet
 
     def delivery_report(self, err: Any, msg: Any) -> None:
         if err is not None:
@@ -24,6 +25,8 @@ class ProduceStats:
             return
 
         self.delivered += 1
+        if self.quiet:
+            return
         key = msg.key().decode("utf-8") if msg.key() else ""
         print(
             f"delivered topic={msg.topic()} partition={msg.partition()} "
@@ -78,6 +81,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Parse and print events without producing to Kafka.",
     )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress per-message delivery logs and print only the final summary.",
+    )
     return parser.parse_args()
 
 
@@ -118,7 +126,7 @@ def produce(args: argparse.Namespace) -> int:
         return 1
 
     producer = None
-    stats = ProduceStats()
+    stats = ProduceStats(quiet=args.quiet)
     if not args.dry_run:
         producer = Producer(
             {

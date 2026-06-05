@@ -1,211 +1,165 @@
-# 기대 출력
+# 3차시 기대 출력
 
-이 문서는 로컬 실습을 정상 실행했을 때 확인할 수 있는 대표 출력입니다. 표의 border나 공백은 실행 환경에 따라 조금 달라질 수 있습니다.
+이 문서는 3차시 Kafka 실습을 정상 실행했을 때 확인할 수 있는 대표 출력입니다. 공백, partition별 offset 숫자, row 순서는 실행 환경과 replay 횟수에 따라 달라질 수 있습니다.
 
 ## `docker compose -f docker-compose.lite.yml ps`
 
-핵심 서비스가 아래와 같이 보여야 합니다.
+3차시 필수 서비스입니다.
 
 ```text
 de5-kafka
-de5-minio
-de5-iceberg-postgres
-de5-iceberg-rest
-de5-flink-jobmanager
-de5-flink-taskmanager
-de5-spark-client
-de5-starrocks-fe
-de5-starrocks-cn
+de5-kafka-ui
 ```
 
-`de5-kafka-init`와 `de5-minio-init`는 topic과 bucket을 만든 뒤 정상 종료됩니다.
+`de5-kafka-init`는 topic을 만든 뒤 정상 종료됩니다.
 
-## Kafka topic
+## Topic describe
 
-```text
-Topic: commerce-events
-PartitionCount: 3
-ReplicationFactor: 1
+```bash
+./scripts/describe-olist-kafka-topics.sh
 ```
 
-## Kafka producer
+대표 출력입니다.
 
 ```text
-delivered topic=commerce-events partition=... offset=... key=...
-sent=240 topic=commerce-events input=/workspace/data/sample/commerce_events_sample.jsonl
+== topic: ux-events ==
+Topic: ux-events	TopicId: ...	PartitionCount: 3	ReplicationFactor: 1	Configs:
+	Topic: ux-events	Partition: 0	Leader: 1	Replicas: 1	Isr: 1
+	Topic: ux-events	Partition: 1	Leader: 1	Replicas: 1	Isr: 1
+	Topic: ux-events	Partition: 2	Leader: 1	Replicas: 1	Isr: 1
 ```
 
-## Kafka consumer
+해석입니다.
 
 ```text
-<user_session> | {"id":"evt-202605-000001","event_time":"2026-05-01T00:02:32Z","event_type":"purchase",...}
+partition 3개, RF 1, ISR 1입니다.
+브로커가 1개라 복제 안정성은 없지만, partition/offset/consumer 병렬성 개념을 보기에는 충분합니다.
 ```
 
-## Kafka offset
+## UX producer
 
-```text
-commerce-events:0:...
-commerce-events:1:...
-commerce-events:2:...
+```bash
+VERBOSE=true ./scripts/produce-olist-ux-events.sh --max-events 100
 ```
 
-`--repeat`, `--max-events`, `--key-field` 값을 바꾸면 offset은 달라질 수 있습니다.
-
-## Paimon Bronze
-
-`./scripts/run-flink-paimon-bronze.sh` 실행 후에는 아래 메시지를 확인합니다.
+대표 출력입니다.
 
 ```text
-[INFO] Execute statement succeeded.
+delivered topic=ux-events partition=0 offset=0 key=sess-...
+delivered topic=ux-events partition=1 offset=0 key=sess-...
+delivered topic=ux-events partition=2 offset=0 key=sess-...
+sent=100 topic=ux-events input=/workspace/data/sample/olist/ux_events.jsonl
 ```
 
-`./scripts/query-paimon-bronze.sh` 실행 후 row count는 240이어야 합니다.
+확인할 것:
 
 ```text
-row_count
-240
+topic
+partition
+offset
+key
+sent count
 ```
 
-event type 집계는 아래 형태로 보입니다.
+## UX consumer
 
-```text
-event_type          event_count
-cart                36
-purchase            29
-remove_from_cart    19
-view                156
+```bash
+GROUP_ID=de5-debug-consumer KAFKA_TOPIC=ux-events MAX_MESSAGES=5 ./scripts/consume-kafka.sh
 ```
 
-샘플 row는 아래와 비슷합니다.
+대표 출력입니다.
 
 ```text
-event_id            event_time           event_type  category_code                 brand    price  user_id  user_session
-evt-202605-000001   2026-05-01 00:02:32  purchase    electronics.smartphone        samsung  699.00 ...
-evt-202605-000002   2026-05-01 00:03:42  view        grocery.drink.sparkling_water trevi     19.00 ...
+sess-... | {"id":"ux-...","event_id":"ux-...","event_time":"2017-...","event_type":"product_view","user_id":...,"session_id":"sess-...","product_id":...}
 ```
 
-Flink SQL Client의 tableau 출력 모드 때문에 border와 spacing은 환경에 따라 조금 다를 수 있습니다.
+왼쪽 값은 Kafka message key이고, 오른쪽 JSON은 실제 payload입니다.
 
-## Iceberg analytics tables
+## Topic offsets
 
-`./scripts/run-spark-iceberg-transform.sh` 실행 후 아래 table 생성 결과를 확인합니다.
-
-```text
-created=iceberg_lake.analytics.commerce_events_clean rows=240
-created=iceberg_lake.analytics.commerce_event_type_daily rows=4
-created=iceberg_lake.analytics.commerce_category_daily rows=11
+```bash
+KAFKA_TOPIC=ux-events ./scripts/get-kafka-offsets.sh
 ```
 
-`./scripts/query-iceberg-tables.sh` 실행 후 clean table row count는 240이어야 합니다.
+대표 출력입니다.
 
 ```text
-clean_row_count
-240
+ux-events:0:...
+ux-events:1:...
+ux-events:2:...
 ```
 
-일 단위 event type summary는 아래 형태입니다.
+각 줄은 partition별 끝 offset입니다.
 
-```text
-event_date   event_type          event_count  user_count  session_count  product_count  revenue
-2026-05-01   cart                36           32          36             11             0.00
-2026-05-01   purchase            29           26          29             9              6142.00
-2026-05-01   remove_from_cart    19           16          19             9              0.00
-2026-05-01   view                156          69          156            11             0.00
+## Consumer group lag
+
+```bash
+GROUP_ID=de5-debug-consumer ./scripts/check-kafka-lag.sh
 ```
 
-카테고리/매출 summary에는 아래와 같은 row가 포함됩니다.
+대표 출력입니다.
 
 ```text
-category_code                    event_count  view_count  cart_count  purchase_count  revenue
-electronics.smartphone           28           16          2           7               4893.00
-electronics.keyboard             23           16          1           5               395.00
-electronics.audio.headphone      24           17          3           3               387.00
+GROUP               TOPIC      PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG  CONSUMER-ID  HOST  CLIENT-ID
+de5-debug-consumer  ux-events  0          ...             ...             ...  -            -     -
 ```
 
-## StarRocks realtime OLAP
-
-`./scripts/load-realtime-olap-from-kafka.sh` 실행 후 Stream Load 성공 메시지를 확인합니다.
+해석입니다.
 
 ```text
-"Status": "Success"
-loaded=240 source=kafka topic=commerce-events target=de5_realtime_olap.commerce_events_rt
+lag = topic 끝 offset - consumer group이 처리한 offset
 ```
 
-`./scripts/query-realtime-olap.sh` 실행 후 전체 지표는 아래와 같습니다.
+`GROUP_ID`를 고정하지 않고 consume하면 lag 조회가 비어 보일 수 있습니다.
 
-```text
-total_events  users  sessions  products  revenue
-240           78     240       11        6142.00
+## 같은 sample 재replay
+
+```bash
+./scripts/produce-olist-ux-events.sh --max-events 100
+KAFKA_TOPIC=ux-events ./scripts/get-kafka-offsets.sh
 ```
 
-realtime aggregate view는 아래 세 개입니다.
+기대 현상입니다.
 
 ```text
-commerce_event_type_realtime
-commerce_category_realtime
-commerce_minute_event_type_realtime
+offset이 증가합니다.
 ```
 
-## MinIO bucket
+해석입니다.
 
 ```text
-warehouse
-paimon
+멱등 producer는 producer 재시도 중복을 막습니다.
+같은 파일을 다시 replay하는 것은 Kafka 입장에서 새로운 전송이므로 다시 append될 수 있습니다.
+```
+
+## 4차시 입력 이벤트
+
+```bash
+./scripts/reset-olist-kafka-topics.sh
+./scripts/produce-olist-ux-events.sh
+./scripts/produce-olist-review-events.sh
+./scripts/produce-olist-order-events.sh
+```
+
+대표 결과입니다.
+
+```text
+sent=13023 topic=ux-events input=/workspace/data/sample/olist/ux_events.jsonl
+sent=5943 topic=review-events input=/workspace/data/sample/olist/review_events.jsonl
+sent=7886 topic=order-status-events input=/workspace/data/sample/olist/order_status_events.jsonl
 ```
 
 ## Web UI
 
-- Flink UI: http://localhost:8081
-- MinIO Console: http://localhost:9001
-- StarRocks FE: http://localhost:8030
-- Airflow UI: http://localhost:8080
-- Streamlit BI: http://127.0.0.1:8501
-
-## Airflow DAG
-
-`./scripts/list-airflow-dags.sh` 실행 후 DAG 목록에 아래 이름이 포함되어야 합니다.
+Kafka UI:
 
 ```text
-de5_lite_lakehouse_pipeline
+http://localhost:8088
 ```
 
-DAG를 trigger한 뒤 마지막 `query_iceberg_tables` task log에서 아래 값을 확인합니다.
+확인할 것:
 
-```text
-clean_row_count
-240
-```
-
-## BI metrics
-
-`./scripts/query-realtime-olap-metrics.sh` 출력에는 아래 JSON이 포함됩니다.
-
-```text
-REALTIME_OLAP_JSON={
-  "totals": {
-    "total_events": 240,
-    "event_types": 4,
-    "products": 11,
-    "users": 78,
-    "sessions": 240,
-    "revenue": 6142.0
-  },
-  ...
-}
-```
-
-`./scripts/query-bi-metrics.sh` 출력에는 아래 JSON이 포함됩니다.
-
-```text
-BI_METRICS_JSON={
-  "totals": {
-    "total_events": 240,
-    "event_types": 4,
-    "products": 11,
-    "users": 78,
-    "sessions": 240,
-    "revenue": 6142.0
-  },
-  ...
-}
-```
+- `ux-events`, `review-events`, `order-status-events` topic 존재
+- message key 표시
+- partition과 offset 표시
+- payload JSON 확인

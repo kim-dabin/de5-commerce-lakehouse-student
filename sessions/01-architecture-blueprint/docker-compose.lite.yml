@@ -5,6 +5,8 @@ services:
     image: ${KAFKA_IMAGE:-apache/kafka:3.9.1}
     hostname: kafka
     container_name: de5-kafka
+    extra_hosts:
+      - "kafka:127.0.0.1"
     ports:
       - "9092:9092"
     environment:
@@ -58,6 +60,22 @@ services:
       - lakehouse
     restart: "no"
 
+  kafka-ui:
+    image: ${KAFKA_UI_IMAGE:-provectuslabs/kafka-ui:latest}
+    hostname: kafka-ui
+    container_name: de5-kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "${KAFKA_UI_HOST_PORT:-8088}:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: de5-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:19092
+      DYNAMIC_CONFIG_ENABLED: "true"
+    networks:
+      - lakehouse
+
   minio:
     image: ${MINIO_IMAGE:-minio/minio:latest}
     hostname: minio
@@ -96,7 +114,11 @@ services:
         && (mc admin user svcacct add \
           --access-key ${STARROCKS_MINIO_ACCESS_KEY:-AAAAAAAAAAAAAAAAAAAA} \
           --secret-key ${STARROCKS_MINIO_SECRET_KEY:-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB} \
-          local ${MINIO_ROOT_USER:-minioadmin} || true) \
+          local ${MINIO_ROOT_USER:-minioadmin} 2>/tmp/minio-svcacct.err \
+          || case "$$(cat /tmp/minio-svcacct.err)" in \
+            *already*) echo "StarRocks MinIO service account already exists; skip" ;; \
+            *) cat /tmp/minio-svcacct.err >&2 && exit 1 ;; \
+          esac) \
         && mc ls local
     networks:
       - lakehouse
