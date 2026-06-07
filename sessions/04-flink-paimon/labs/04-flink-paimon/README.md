@@ -115,9 +115,21 @@ row count는 결과를 보여주고, snapshot은 commit 이력을 보여주고, 
 이 스크립트는 아래 내용을 확인합니다.
 
 - `review_current$snapshots`: `APPEND`, `COMPACT` commit 흐름
+- 특정 시점 직전의 snapshot 후보: 장애/배포/데이터 이상 직전 정상 기준점
+- snapshot id 기준 time travel: 과거 테이블 상태를 직접 읽는 방법
 - `review_current$files`: level별 파일 분포와 L0 파일 상태
 - bucket x level 분포: 특정 bucket에 변경 파일이 몰리는지
 - `ux_events_bronze$snapshots`, `ux_events_bronze$files`: append table과 primary key table의 차이
+
+실무에서 snapshot은 "멋있는 time travel 기능"이라기보다 운영 기준점입니다. 문제가 생기면 현재 row count만 보지 않고 아래 질문부터 던집니다.
+
+```text
+문제가 생기기 직전 정상 snapshot은 무엇인가?
+잘못된 commit은 APPEND였나 COMPACT였나?
+특정 시점 이후 row 수가 갑자기 달라졌는가?
+time travel로 문제 전 상태를 읽을 수 있는가?
+rollback이 필요하다면 어느 snapshot으로 돌아가야 하는가?
+```
 
 수업에서 볼 핵심은 아래입니다.
 
@@ -132,6 +144,20 @@ compaction은 이 파일들을 더 읽기 좋은 level로 정리합니다.
 작은 로컬 실습에서는 운영처럼 극단적인 파일 분포가 나오지 않을 수 있습니다. 그래도 system table을 통해 "Paimon은 그냥 파일을 저장하는 것이 아니라 commit 이력과 파일 상태를 함께 관리한다"는 점을 확인할 수 있습니다.
 
 local demo에서는 `review_current`, `order_current`에 `full-compaction.delta-commits = 1`을 두었기 때문에 L0 파일이 비어 있고 더 높은 level 파일만 보일 수 있습니다. 이 경우는 "compaction이 빠르게 따라잡았다"는 관찰 포인트로 설명합니다.
+
+JupyterLab의 `notebooks/de5-spark-starter.ipynb`에는 같은 내용을 PySpark로 따라가는 셀이 들어 있습니다. 수업에서는 아래 순서로 확인합니다.
+
+1. `paimon_lake.bronze.review_current$snapshots`로 Paimon commit 기준점 확인
+2. `VERSION AS OF <snapshot_id>`로 Paimon 과거 상태 조회
+3. `iceberg_lake.bronze.review_current.snapshots`로 Iceberg-compatible metadata 확인
+4. `review_current$files`로 compaction 이후 level 파일 분포 확인
+
+Paimon과 Iceberg snapshot 조회는 비슷하지만 보는 컬럼 이름이 다릅니다.
+
+```text
+Paimon  : table$snapshots / commit_time   / commit_kind
+Iceberg : table.snapshots  / committed_at / operation
+```
 
 ## 검증 체인
 
