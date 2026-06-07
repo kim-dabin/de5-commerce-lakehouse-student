@@ -66,7 +66,10 @@ CREATE TABLE IF NOT EXISTS paimon_lake.bronze.ux_events_bronze (
 ) WITH (
   'bucket' = '3',
   'bucket-key' = 'event_id',
-  'metadata.iceberg.storage' = 'hadoop-catalog'
+  'metadata.iceberg.storage' = 'rest-catalog',
+  'metadata.iceberg.rest.uri' = 'http://iceberg-rest:8181',
+  'metadata.iceberg.rest.warehouse' = 's3://warehouse/',
+  'metadata.iceberg.rest.clients' = '1'
 );
 
 CREATE TABLE IF NOT EXISTS paimon_lake.bronze.review_current (
@@ -90,7 +93,10 @@ CREATE TABLE IF NOT EXISTS paimon_lake.bronze.review_current (
   PRIMARY KEY (review_id) NOT ENFORCED
 ) WITH (
   'bucket' = '3',
-  'metadata.iceberg.storage' = 'hadoop-catalog',
+  'metadata.iceberg.storage' = 'rest-catalog',
+  'metadata.iceberg.rest.uri' = 'http://iceberg-rest:8181',
+  'metadata.iceberg.rest.warehouse' = 's3://warehouse/',
+  'metadata.iceberg.rest.clients' = '1',
   'full-compaction.delta-commits' = '1'
 );
 
@@ -107,7 +113,10 @@ CREATE TABLE IF NOT EXISTS paimon_lake.bronze.order_current (
   PRIMARY KEY (order_id) NOT ENFORCED
 ) WITH (
   'bucket' = '3',
-  'metadata.iceberg.storage' = 'hadoop-catalog',
+  'metadata.iceberg.storage' = 'rest-catalog',
+  'metadata.iceberg.rest.uri' = 'http://iceberg-rest:8181',
+  'metadata.iceberg.rest.warehouse' = 's3://warehouse/',
+  'metadata.iceberg.rest.clients' = '1',
   'full-compaction.delta-commits' = '1'
 );
 

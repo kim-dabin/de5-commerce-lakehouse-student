@@ -40,7 +40,10 @@ CREATE TABLE IF NOT EXISTS paimon_lake.bronze.commerce_events_bronze (
   PRIMARY KEY (event_id) NOT ENFORCED
 ) WITH (
   'bucket' = '3',
-  'metadata.iceberg.storage' = 'hadoop-catalog',
+  'metadata.iceberg.storage' = 'rest-catalog',
+  'metadata.iceberg.rest.uri' = 'http://iceberg-rest:8181',
+  'metadata.iceberg.rest.warehouse' = 's3://warehouse/',
+  'metadata.iceberg.rest.clients' = '1',
   'full-compaction.delta-commits' = '1'
 );
 

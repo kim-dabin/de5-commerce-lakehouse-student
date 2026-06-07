@@ -181,6 +181,7 @@ services:
         FLINK_BASE_IMAGE: ${FLINK_BASE_IMAGE:-flink:1.20.4-scala_2.12-java17}
         FLINK_KAFKA_CONNECTOR_VERSION: ${FLINK_KAFKA_CONNECTOR_VERSION:-3.4.0-1.20}
         PAIMON_VERSION: ${PAIMON_VERSION:-1.4.1}
+        ICEBERG_FLINK_RUNTIME_VERSION: ${ICEBERG_FLINK_RUNTIME_VERSION:-1.11.0}
         FLINK_SHADED_HADOOP_VERSION: ${FLINK_SHADED_HADOOP_VERSION:-2.8.3-10.0}
     image: ${FLINK_IMAGE:-de5-flink:1.20.4-paimon}
     hostname: flink-jobmanager
@@ -285,8 +286,8 @@ services:
       context: .
       dockerfile: docker/spark/Dockerfile
       args:
-        SPARK_BASE_IMAGE: ${SPARK_BASE_IMAGE:-apache/spark:3.5.6}
-    image: ${SPARK_IMAGE:-de5-spark:3.5.6}
+        SPARK_BASE_IMAGE: ${SPARK_BASE_IMAGE:-apache/spark:3.5.6-java17}
+    image: ${SPARK_IMAGE:-de5-spark:3.5.6-java17}
     container_name: de5-spark-client
     command: ["sleep", "infinity"]
     depends_on:
@@ -554,8 +555,8 @@ services:
       context: .
       dockerfile: docker/jupyter/Dockerfile
       args:
-        SPARK_IMAGE: ${SPARK_IMAGE:-de5-spark:3.5.6}
-    image: de5-jupyter:spark3.5.6
+        SPARK_IMAGE: ${SPARK_IMAGE:-de5-spark:3.5.6-java17}
+    image: de5-jupyter:spark3.5.6-java17
     container_name: de5-jupyter
     ports:
       - "${JUPYTER_HOST_PORT:-8888}:8888"
@@ -564,6 +565,10 @@ services:
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       AWS_REGION: us-east-1
       SPARK_LOCAL_IP: jupyter
+      STARROCKS_HOST: starrocks-fe
+      STARROCKS_PORT: "9030"
+      STARROCKS_USER: root
+      STARROCKS_PASSWORD: ""
     volumes:
       - ./labs:/workspace/labs
       - ./data:/workspace/data

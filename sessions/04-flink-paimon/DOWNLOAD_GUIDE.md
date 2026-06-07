@@ -23,12 +23,16 @@ cp .env.example .env
 ```bash
 docker compose -f docker-compose.lite.yml up -d --build
 ./scripts/reset-olist-kafka-topics.sh
+./scripts/reset-olist-paimon.sh
+./scripts/run-flink-olist-paimon-streaming.sh
 ./scripts/produce-olist-ux-events.sh
 ./scripts/produce-olist-review-events.sh
 ./scripts/produce-olist-order-events.sh
-./scripts/reset-olist-paimon.sh
-./scripts/run-flink-olist-paimon.sh
 ./scripts/query-olist-paimon.sh
+./scripts/query-olist-paimon-ops.sh
+
+# 보조/Plan B: bounded job으로 빠르게 재현해야 할 때
+./scripts/run-flink-olist-paimon.sh
 ```
 
 실행이 실패하면 실행한 명령어와 터미널 에러 메시지를 함께 캡처해 디스코드 해당 차시 채널에 올려주세요.

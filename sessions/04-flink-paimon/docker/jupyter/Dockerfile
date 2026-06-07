@@ -1,9 +1,9 @@
-# DE5 lite: JupyterLab on top of our Spark 3.5.6 image.
+# DE5 lite: JupyterLab on top of our Spark 3.5.6 Java 17 image.
 # Reuses the bundled PySpark (/opt/spark/python) so the Spark version matches
 # exactly (3.5.6). Iceberg/Paimon jars resolve from the shared spark-ivy-cache
 # volume that spark-client already populated, so SparkSession startup is fast.
 
-ARG SPARK_IMAGE=de5-spark:3.5.6
+ARG SPARK_IMAGE=de5-spark:3.5.6-java17
 FROM ${SPARK_IMAGE}
 
 USER root
@@ -11,7 +11,9 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip \
  && python3 -m pip install --no-cache-dir \
       "jupyterlab>=4.0,<4.3" \
       "notebook>=7.0,<7.3" \
-      "pandas<2.1"
+      "numpy<2" \
+      "pandas<2.1" \
+      "pymysql>=1.1,<1.2"
 
 # Custom "PySpark (DE5 Lakehouse)" kernel: catalogs pre-wired via PYSPARK_SUBMIT_ARGS,
 # and a startup script auto-creates `spark`/`sc` so students need no boilerplate.

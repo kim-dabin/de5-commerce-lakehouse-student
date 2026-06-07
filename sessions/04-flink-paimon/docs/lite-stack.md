@@ -76,8 +76,17 @@ docker compose -f docker-compose.lite.yml down
 - Flink: http://localhost:8081
 - MinIO Console: http://localhost:9001
 - Iceberg REST: http://localhost:8181
+- JupyterLab: http://localhost:8888
 - StarRocks FE: http://localhost:8030
 - Airflow: http://localhost:8080
+
+JupyterLab의 `PySpark (DE5 Lakehouse)` 커널은 Spark catalog와 StarRocks helper를 함께 준비합니다.
+
+```python
+spark.sql("SELECT COUNT(*) FROM paimon_lake.bronze.ux_events_bronze").show()
+starrocks_sql("SHOW CATALOGS")
+starrocks_sql("SELECT COUNT(*) AS ux_rows FROM paimon_olist.bronze.ux_events_bronze")
+```
 
 MinIO 기본 계정입니다.
 
