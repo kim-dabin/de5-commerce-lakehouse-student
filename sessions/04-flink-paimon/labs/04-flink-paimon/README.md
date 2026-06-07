@@ -154,6 +154,29 @@ JupyterLab의 `notebooks/de5-spark-starter.ipynb`에는 같은 내용을 PySpark
 3. `iceberg_lake.bronze.review_current.snapshots`로 Iceberg-compatible metadata 확인
 4. `review_current$files`로 compaction 이후 level 파일 분포 확인
 
+Jupyter에서 보는 증거는 아래 네 가지로 나눕니다.
+
+```text
+row_count         : 현재 결과
+Paimon $snapshots : commit 이력과 정상 기준점
+Paimon $files     : level, bucket, file_count로 보는 저장 상태
+Iceberg snapshots : reader 호환 metadata 이력
+```
+
+Paimon 파일은 snapshot에서 시작해 manifest를 거쳐 실제 data file을 읽는 구조입니다.
+
+```text
+snapshot
+  -> manifest list
+  -> manifest
+  -> data-*.parquet
+
+schema
+  -> 테이블 구조 버전
+```
+
+따라서 `data-*.parquet`만 보는 것이 아니라, snapshot/manifest/files를 함께 봐야 "어떤 시점에 어떤 파일을 읽는가"를 설명할 수 있습니다. small file 문제는 checkpoint 간격, write buffer, bucket 수, compaction 정책과 연결해서 봅니다.
+
 Paimon과 Iceberg snapshot 조회는 비슷하지만 보는 컬럼 이름이 다릅니다.
 
 ```text
