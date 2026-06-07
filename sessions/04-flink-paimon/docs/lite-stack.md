@@ -96,7 +96,7 @@ password: admin
 ## 참고
 
 - Flink는 커스텀 로컬 이미지를 사용합니다. Kafka SQL connector, Paimon Flink bundle, Hadoop shaded jar를 `/opt/flink/lib`에 넣어두기 위해서입니다.
-- Paimon은 첫 실습의 S3 의존성을 낮추기 위해 `/warehouse/paimon` Docker volume을 사용합니다.
+- Paimon은 MinIO의 `s3://paimon/warehouse`를 warehouse로 사용합니다. Flink, Spark, StarRocks가 같은 object storage 기반 Paimon table을 읽습니다.
 - Iceberg REST는 table data를 MinIO에 저장하고 catalog metadata를 Postgres에 저장합니다.
 - Spark는 batch job 실행용 client 컨테이너입니다. Spark 실습 스크립트는 실행 시점에 Paimon/Iceberg runtime package를 추가하고 shared Ivy volume에 cache합니다.
 - StarRocks는 shared-data 형태로 실행합니다. FE와 CN이 뜨고 table data는 MinIO object storage에 저장합니다.

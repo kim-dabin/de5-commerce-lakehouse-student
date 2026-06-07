@@ -192,7 +192,7 @@ services:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: flink-jobmanager
         parallelism.default: 1
-        taskmanager.numberOfTaskSlots: 2
+        taskmanager.numberOfTaskSlots: 4
         state.backend.type: hashmap
         state.checkpoints.dir: file:///opt/flink/checkpoints
         execution.checkpointing.interval: 30s
@@ -201,7 +201,6 @@ services:
       - ./labs:/workspace/labs
       - ./data:/workspace/data
       - flink-checkpoints:/opt/flink/checkpoints
-      - paimon-warehouse:/warehouse/paimon
     networks:
       - lakehouse
 
@@ -216,7 +215,7 @@ services:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: flink-jobmanager
         parallelism.default: 1
-        taskmanager.numberOfTaskSlots: 2
+        taskmanager.numberOfTaskSlots: 4
         taskmanager.memory.process.size: 1536m
         state.backend.type: hashmap
         state.checkpoints.dir: file:///opt/flink/checkpoints
@@ -226,7 +225,6 @@ services:
       - ./labs:/workspace/labs
       - ./data:/workspace/data
       - flink-checkpoints:/opt/flink/checkpoints
-      - paimon-warehouse:/warehouse/paimon
     networks:
       - lakehouse
 
@@ -251,7 +249,6 @@ services:
     volumes:
       - ./labs:/workspace/labs
       - ./data:/workspace/data
-      - paimon-warehouse:/warehouse/paimon
     networks:
       - lakehouse
     profiles:
@@ -306,7 +303,6 @@ services:
       - ./labs:/workspace/labs
       - ./data:/workspace/data
       - ./scripts:/workspace/scripts
-      - paimon-warehouse:/warehouse/paimon
       - spark-ivy-cache:/home/spark/.ivy2
     networks:
       - lakehouse
@@ -535,6 +531,51 @@ services:
     profiles:
       - orchestration
 
+  # --- Interactive query UIs (mentor demo only; `--profile query`) ---
+  # CloudBeaver: web SQL IDE against StarRocks (MySQL protocol 9030).
+  # Reads paimon_olist / iceberg_olist external catalogs. No Paimon time-travel.
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: de5-cloudbeaver
+    ports:
+      - "${CLOUDBEAVER_HOST_PORT:-8978}:8978"
+    volumes:
+      - cloudbeaver-data:/opt/cloudbeaver/workspace
+    networks:
+      - lakehouse
+    profiles:
+      - query
+
+  # JupyterLab + PySpark 3.5.6 (bundled). Local Spark session reads
+  # paimon_lake (s3://paimon/warehouse) and iceberg_lake (REST) catalogs.
+  # Iceberg/Paimon jars come from the shared spark-ivy-cache volume.
+  jupyter:
+    build:
+      context: .
+      dockerfile: docker/jupyter/Dockerfile
+      args:
+        SPARK_IMAGE: ${SPARK_IMAGE:-de5-spark:3.5.6}
+    image: de5-jupyter:spark3.5.6
+    container_name: de5-jupyter
+    ports:
+      - "${JUPYTER_HOST_PORT:-8888}:8888"
+    environment:
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      AWS_REGION: us-east-1
+      SPARK_LOCAL_IP: jupyter
+    volumes:
+      - ./labs:/workspace/labs
+      - ./data:/workspace/data
+      - ./notebooks:/workspace/notebooks
+      - spark-ivy-cache:/home/spark/.ivy2
+    depends_on:
+      - iceberg-rest
+    networks:
+      - lakehouse
+    profiles:
+      - query
+
 networks:
   lakehouse:
     name: de5-lite-lakehouse
@@ -545,9 +586,9 @@ volumes:
   iceberg-postgres-data:
   iceberg-rest-data:
   flink-checkpoints:
-  paimon-warehouse:
   spark-ivy-cache:
   starrocks-fe-meta:
   starrocks-cn-storage:
   airflow-postgres-data:
   airflow-logs:
+  cloudbeaver-data:

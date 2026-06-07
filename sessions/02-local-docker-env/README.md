@@ -40,6 +40,8 @@ MAX_MESSAGES=5 ./scripts/consume-kafka.sh
 
 Kafka UI에서는 `de5-local` cluster를 선택한 뒤 `Topics`에서 `commerce-events`를 확인합니다. 이벤트를 replay한 뒤에는 topic 상세 화면에서 message를 조회할 수 있습니다.
 
+
+
 ## 제출/질문 기준
 
 - 과제 제출은 디스코드의 해당 차시 채널에 올립니다.

@@ -74,6 +74,11 @@ review_current
   - primary key: review_id
   - review_created -> sentiment_scored -> review_answered 이벤트가 같은 review_id로 접힘
   - Paimon을 쓰는 주된 명분
+
+order_current
+  - primary key: order_id
+  - order_created -> order_approved -> order_shipped -> order_delivered/canceled 이벤트가 같은 order_id로 접힘
+  - 주문 상태 기준 BI와 UXLog purchase 해석의 보조 기준
 ```
 
 수업에서 강조할 문장:
@@ -87,6 +92,7 @@ docker compose -f docker-compose.lite.yml up -d --build kafka kafka-init kafka-p
 ./scripts/reset-olist-kafka-topics.sh
 ./scripts/produce-olist-ux-events.sh
 ./scripts/produce-olist-review-events.sh
+./scripts/produce-olist-order-events.sh
 ./scripts/reset-olist-paimon.sh
 ./scripts/run-flink-olist-paimon.sh
 ./scripts/query-olist-paimon.sh
@@ -95,11 +101,14 @@ docker compose -f docker-compose.lite.yml up -d --build kafka kafka-init kafka-p
 샘플 기준 검증 결과:
 
 ```text
-ux_events_bronze row count = 13,023
+ux_events_bronze row count = 16,693
 review_current row count = 1,971
+order_current row count = 2,000
 
 review_events input row count = 5,943
 review_current row count = 1,971
+order_status_events input row count = 7,886
+order_current row count = 2,000
 ```
 
 해석:
@@ -108,4 +117,49 @@ review_current row count = 1,971
 review_events는 변경 이벤트 로그다.
 review_current는 review_id 기준 최신 상태 테이블이다.
 따라서 이벤트 수보다 current row 수가 작아지는 것이 정상이다.
+
+order_status_events도 변경 이벤트 로그다.
+order_current는 order_id 기준 최신 상태 테이블이다.
+따라서 주문 상태 변경 이벤트 수보다 current row 수가 작아지는 것이 정상이다.
+```
+
+## 전체 BI 파이프라인
+
+전체 파이프라인은 아래 명령으로 검증한다.
+
+```bash
+./scripts/run-olist-bi-pipeline.sh
+```
+
+검증된 샘플 기준 결과:
+
+| 계층 | table/metric | 값 |
+|---|---|---:|
+| Paimon | `ux_events_bronze` | 16,693 |
+| Paimon | `review_current` | 1,971 |
+| Paimon | `order_current` | 2,000 |
+| Iceberg | `olist_ux_events_clean` | 16,693 |
+| Iceberg | `olist_review_current` | 1,971 |
+| Iceberg | `olist_order_current` | 2,000 |
+| StarRocks | Paimon catalog query rows | 16,693 |
+| BI | total events | 16,693 |
+| BI | revenue | 265,036.00 |
+| BI | average review rating | 3.93 |
+| BI | negative reviews | 367 |
+| BI | review seen pairs | 2,940 |
+| BI | PDP exit rate after review seen | 25.90% |
+
+## 수업에서 사용할 해석
+
+```text
+UXLog는 append fact다.
+동일 사용자가 동일 상품을 여러 번 본 것은 모두 별도 행동이다.
+
+Review와 Order는 current-state entity다.
+동일 review_id/order_id에 대해 나중에 상태나 분석 결과가 보강된다.
+
+따라서 이 프로젝트는 append와 upsert를 한 파이프라인 안에서 같이 보여준다.
+Paimon은 이 두 모델을 Bronze 계층에서 함께 다루는 역할을 한다.
+Iceberg는 Spark batch 결과를 기준 BI 테이블로 남긴다.
+StarRocks는 Paimon external catalog를 통해 Bronze/current table을 OLAP 방식으로 빠르게 조회한다.
 ```

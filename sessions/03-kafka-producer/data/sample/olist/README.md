@@ -6,6 +6,7 @@
 ux_events.jsonl
   - 주문/상품/리뷰 관계를 기반으로 생성한 append-only UXLog
   - search_result_click, product_view, review_impression, review_expand, add_to_cart, purchase, remove_from_cart
+  - 리뷰 감성에 따른 browse-only 세션을 추가 생성해 리뷰 노출 이후 이탈/전환 분석을 관찰할 수 있게 함
 
 review_events.jsonl
   - Olist review를 기반으로 만든 review 상태 변경 이벤트
@@ -32,7 +33,7 @@ product_xref.csv
 검증된 샘플 row count입니다.
 
 ```text
-ux_events.jsonl            13,023
+ux_events.jsonl            16,693
 review_events.jsonl         5,943
 order_status_events.jsonl   7,886
 ```

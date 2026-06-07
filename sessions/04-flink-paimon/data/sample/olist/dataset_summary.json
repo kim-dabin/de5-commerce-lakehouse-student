@@ -11,20 +11,20 @@
     "products": 32951
   },
   "generated_rows": {
-    "ux_events": 13023,
+    "ux_events": 16693,
     "order_status_events": 7886,
     "review_events": 5943,
     "product_xref": 32951
   },
   "event_type_counts": {
     "ux_events": {
-      "add_to_cart": 2221,
-      "product_view": 2221,
+      "add_to_cart": 2365,
+      "product_view": 3132,
       "purchase": 2220,
       "remove_from_cart": 1,
-      "review_expand": 1947,
-      "review_impression": 2192,
-      "search_result_click": 2221
+      "review_expand": 2740,
+      "review_impression": 3103,
+      "search_result_click": 3132
     },
     "order_status_events": {
       "order_approved": 1996,
@@ -41,6 +41,7 @@
   },
   "notes": [
     "UX events are simulated from real Olist order/order_item/product/review relationships.",
+    "Additional browse-only UX sessions are generated from review sentiment to make review impact and PDP exit analysis observable.",
     "Order and review state events preserve real Olist keys and timestamps where available.",
     "product_id is a deterministic numeric surrogate for classroom systems; source_product_id keeps the original Olist key."
   ]

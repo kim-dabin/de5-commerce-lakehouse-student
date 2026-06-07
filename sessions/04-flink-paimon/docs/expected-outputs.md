@@ -1,6 +1,25 @@
 # 기대 출력
 
-이 문서는 로컬 실습을 정상 실행했을 때 확인할 수 있는 대표 출력입니다. 표의 border나 공백은 실행 환경에 따라 조금 달라질 수 있습니다.
+이 문서는 Olist 기반 로컬 실습을 정상 실행했을 때 확인할 수 있는 대표 출력입니다. 표의 border나 공백은 실행 환경에 따라 조금 달라질 수 있습니다.
+
+## 전체 실행
+
+전체 Olist BI 파이프라인은 아래 명령으로 실행합니다.
+
+```bash
+./scripts/run-olist-bi-pipeline.sh
+```
+
+이 스크립트는 아래 순서로 진행합니다.
+
+```text
+Kafka topics reset
+  -> ux/review/order events produce
+  -> Flink bounded ingestion to Paimon
+  -> Spark transform to Iceberg
+  -> StarRocks Paimon external catalog setup
+  -> query outputs
+```
 
 ## `docker compose -f docker-compose.lite.yml ps`
 
@@ -8,6 +27,7 @@
 
 ```text
 de5-kafka
+de5-kafka-ui
 de5-minio
 de5-iceberg-postgres
 de5-iceberg-rest
@@ -20,192 +40,193 @@ de5-starrocks-cn
 
 `de5-kafka-init`와 `de5-minio-init`는 topic과 bucket을 만든 뒤 정상 종료됩니다.
 
-## Kafka topic
+## Kafka topics
 
 ```text
-Topic: commerce-events
+Topic: ux-events
+PartitionCount: 3
+ReplicationFactor: 1
+
+Topic: review-events
+PartitionCount: 3
+ReplicationFactor: 1
+
+Topic: order-status-events
 PartitionCount: 3
 ReplicationFactor: 1
 ```
 
 ## Kafka producer
 
+샘플 기준 이벤트 수입니다.
+
 ```text
-delivered topic=commerce-events partition=... offset=... key=...
-sent=240 topic=commerce-events input=/workspace/data/sample/commerce_events_sample.jsonl
+sent=16693 topic=ux-events input=/workspace/data/sample/olist/ux_events.jsonl
+sent=5943 topic=review-events input=/workspace/data/sample/olist/review_events.jsonl
+sent=7886 topic=order-status-events input=/workspace/data/sample/olist/order_status_events.jsonl
 ```
 
 ## Kafka consumer
 
 ```text
-<user_session> | {"id":"evt-202605-000001","event_time":"2026-05-01T00:02:32Z","event_type":"purchase",...}
+<session_id> | {"event_id":"ux-...","event_time":"2017-...","event_type":"product_view",...}
 ```
 
-## Kafka offset
+왼쪽 값은 Kafka message key이고, 오른쪽 JSON이 실제 event payload입니다.
 
-```text
-commerce-events:0:...
-commerce-events:1:...
-commerce-events:2:...
-```
+## Paimon Bronze/current-state
 
-`--repeat`, `--max-events`, `--key-field` 값을 바꾸면 offset은 달라질 수 있습니다.
-
-## Paimon Bronze
-
-`./scripts/run-flink-paimon-bronze.sh` 실행 후에는 아래 메시지를 확인합니다.
+`./scripts/run-flink-olist-paimon.sh` 실행 후에는 아래 메시지를 확인합니다.
 
 ```text
 [INFO] Execute statement succeeded.
 ```
 
-`./scripts/query-paimon-bronze.sh` 실행 후 row count는 240이어야 합니다.
+`./scripts/query-olist-paimon.sh` 실행 후 주요 count입니다.
 
 ```text
-row_count
-240
+ux_events_bronze_count
+16693
+
+review_current_count
+1971
+
+order_current_count
+2000
 ```
 
-event type 집계는 아래 형태로 보입니다.
+UXLog event type 집계는 아래 값이 나와야 합니다.
 
 ```text
-event_type          event_count
-cart                36
-purchase            29
-remove_from_cart    19
-view                156
+add_to_cart            2365
+product_view           3132
+purchase               2220
+remove_from_cart          1
+review_expand          2740
+review_impression      3103
+search_result_click    3132
 ```
 
-샘플 row는 아래와 비슷합니다.
+review sentiment 집계는 아래 값이 나와야 합니다.
 
 ```text
-event_id            event_time           event_type  category_code                 brand    price  user_id  user_session
-evt-202605-000001   2026-05-01 00:02:32  purchase    electronics.smartphone        samsung  699.00 ...
-evt-202605-000002   2026-05-01 00:03:42  view        grocery.drink.sparkling_water trevi     19.00 ...
+negative    367
+neutral     157
+positive   1447
 ```
 
-Flink SQL Client의 tableau 출력 모드 때문에 border와 spacing은 환경에 따라 조금 다를 수 있습니다.
+order latest status 집계는 아래 값이 나와야 합니다.
+
+```text
+order_approved      41
+order_canceled       3
+order_created        2
+order_delivered   1933
+order_shipped       21
+```
 
 ## Iceberg analytics tables
 
-`./scripts/run-spark-iceberg-transform.sh` 실행 후 아래 table 생성 결과를 확인합니다.
+`./scripts/run-spark-iceberg-transform.sh` 실행 후 생성되는 table입니다.
 
 ```text
-created=iceberg_lake.analytics.commerce_events_clean rows=240
-created=iceberg_lake.analytics.commerce_event_type_daily rows=4
-created=iceberg_lake.analytics.commerce_category_daily rows=11
+iceberg_lake.analytics.olist_ux_events_clean
+iceberg_lake.analytics.olist_review_current
+iceberg_lake.analytics.olist_order_current
+iceberg_lake.analytics.olist_event_type_daily
+iceberg_lake.analytics.olist_funnel_daily
+iceberg_lake.analytics.olist_category_daily
+iceberg_lake.analytics.olist_review_sentiment_by_category
 ```
 
-`./scripts/query-iceberg-tables.sh` 실행 후 clean table row count는 240이어야 합니다.
+`./scripts/query-iceberg-tables.sh` 실행 후 row count입니다.
 
 ```text
-clean_row_count
-240
+olist_ux_events_clean                  16693
+olist_review_current                    1971
+olist_order_current                     2000
+olist_event_type_daily                   256
+olist_funnel_daily                        52
+olist_category_daily                     759
+olist_review_sentiment_by_category       120
 ```
 
-일 단위 event type summary는 아래 형태입니다.
+## BI metrics
+
+`./scripts/query-bi-metrics.sh` 출력에는 아래 prefix가 포함됩니다.
+이 명령은 Spark가 만든 Iceberg Analytics table을 StarRocks Iceberg external catalog로 조회합니다.
 
 ```text
-event_date   event_type          event_count  user_count  session_count  product_count  revenue
-2026-05-01   cart                36           32          36             11             0.00
-2026-05-01   purchase            29           26          29             9              6142.00
-2026-05-01   remove_from_cart    19           16          19             9              0.00
-2026-05-01   view                156          69          156            11             0.00
+BI_METRICS_JSON={...}
 ```
 
-카테고리/매출 summary에는 아래와 같은 row가 포함됩니다.
+대표 batch BI 지표입니다.
 
 ```text
-category_code                    event_count  view_count  cart_count  purchase_count  revenue
-electronics.smartphone           28           16          2           7               4893.00
-electronics.keyboard             23           16          1           5               395.00
-electronics.audio.headphone      24           17          3           3               387.00
+total_events       16693
+users               2875
+sessions            2875
+orders              1968
+revenue           265036.00
+reviews             1971
+reviewed_products   1384
+avg_rating             3.93
+negative_reviews     367
 ```
 
 ## StarRocks realtime OLAP
 
-`./scripts/load-realtime-olap-from-kafka.sh` 실행 후 Stream Load 성공 메시지를 확인합니다.
+`./scripts/reset-realtime-olap.sh` 실행 후 Paimon external catalog/view 생성 메시지를 확인합니다.
 
 ```text
-"Status": "Success"
-loaded=240 source=kafka topic=commerce-events target=de5_realtime_olap.commerce_events_rt
+reset=starrocks_paimon_catalog catalog=paimon_olist views=de5_realtime_olap
 ```
 
 `./scripts/query-realtime-olap.sh` 실행 후 전체 지표는 아래와 같습니다.
 
 ```text
 total_events  users  sessions  products  revenue
-240           78     240       11        6142.00
+16693         2875   2875      1470      265036.00
 ```
 
-realtime aggregate view는 아래 세 개입니다.
+리뷰 영향 분석 대표 지표입니다.
 
 ```text
-commerce_event_type_realtime
-commerce_category_realtime
-commerce_minute_event_type_realtime
+review_seen_pairs                 2940
+cart_click_after_review_rate      73.91
+purchase_after_review_rate        68.98
+pdp_exit_rate                     25.90
 ```
 
-## MinIO bucket
+`./scripts/query-realtime-olap-metrics.sh` 출력에는 아래 prefix가 포함됩니다.
 
 ```text
-warehouse
-paimon
+REALTIME_OLAP_JSON={...}
 ```
 
 ## Web UI
 
+- Kafka UI: http://localhost:8088
 - Flink UI: http://localhost:8081
 - MinIO Console: http://localhost:9001
 - StarRocks FE: http://localhost:8030
-- Airflow UI: http://localhost:8080
 - Streamlit BI: http://127.0.0.1:8501
 
-## Airflow DAG
+## Streamlit BI
 
-`./scripts/list-airflow-dags.sh` 실행 후 DAG 목록에 아래 이름이 포함되어야 합니다.
-
-```text
-de5_lite_lakehouse_pipeline
+```bash
+./scripts/start-streamlit-bi.sh
 ```
 
-DAG를 trigger한 뒤 마지막 `query_iceberg_tables` task log에서 아래 값을 확인합니다.
+대시보드 제목은 아래와 같습니다.
 
 ```text
-clean_row_count
-240
+DE5 Olist UXLog + Review Lakehouse BI
 ```
 
-## BI metrics
+확인할 화면입니다.
 
-`./scripts/query-realtime-olap-metrics.sh` 출력에는 아래 JSON이 포함됩니다.
+- `Lakehouse Ops · StarRocks(Paimon)`: Paimon Bronze/current table을 StarRocks external catalog로 직접 조회한 결과
+- `Daily Business · Iceberg`: Iceberg Analytics table을 StarRocks Iceberg external catalog로 직접 조회한 기준 BI 결과
 
-```text
-REALTIME_OLAP_JSON={
-  "totals": {
-    "total_events": 240,
-    "event_types": 4,
-    "products": 11,
-    "users": 78,
-    "sessions": 240,
-    "revenue": 6142.0
-  },
-  ...
-}
-```
-
-`./scripts/query-bi-metrics.sh` 출력에는 아래 JSON이 포함됩니다.
-
-```text
-BI_METRICS_JSON={
-  "totals": {
-    "total_events": 240,
-    "event_types": 4,
-    "products": 11,
-    "users": 78,
-    "sessions": 240,
-    "revenue": 6142.0
-  },
-  ...
-}
-```
+`Lakehouse Ops · StarRocks(Paimon)` 탭에서는 `Review Impact · 리뷰 노출 이후 전환과 이탈` 섹션을 확인합니다.

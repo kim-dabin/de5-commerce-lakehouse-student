@@ -15,7 +15,11 @@ CREATE TEMPORARY TABLE commerce_events_kafka_raw (
 
 CREATE CATALOG paimon_lake WITH (
   'type' = 'paimon',
-  'warehouse' = 'file:/warehouse/paimon'
+  'warehouse' = 's3://paimon/warehouse',
+  's3.endpoint' = 'http://minio:9000',
+  's3.access-key' = 'minioadmin',
+  's3.secret-key' = 'minioadmin',
+  's3.path.style.access' = 'true'
 );
 
 CREATE DATABASE IF NOT EXISTS paimon_lake.bronze;
@@ -35,7 +39,9 @@ CREATE TABLE IF NOT EXISTS paimon_lake.bronze.commerce_events_bronze (
   ingested_at TIMESTAMP_LTZ(3),
   PRIMARY KEY (event_id) NOT ENFORCED
 ) WITH (
-  'bucket' = '3'
+  'bucket' = '3',
+  'metadata.iceberg.storage' = 'hadoop-catalog',
+  'full-compaction.delta-commits' = '1'
 );
 
 INSERT INTO paimon_lake.bronze.commerce_events_bronze

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.lite.yml}"
-TOPIC="${KAFKA_TOPIC:-ux-events}"
+TOPIC="${KAFKA_TOPIC:-commerce-events}"
 MAX_MESSAGES="${MAX_MESSAGES:-5}"
 
 args=(

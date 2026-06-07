@@ -1,68 +1,64 @@
-# 3차시 Kafka 실습 스택
+# Lite Stack
 
-이 문서는 3차시에서 사용하는 로컬 Docker 스택을 설명합니다.
+이 문서는 데이터 엔지니어 부트캠프 5기 B주제 스터디에서 사용하는 첫 로컬 실습 스택을 설명합니다.
 
-## 이번 차시에서 실제로 쓰는 서비스
+## 목표
 
-3차시는 Kafka 수집 계층만 다룹니다.
+Lite stack은 프로덕션 배포용이 아니라 수업용 실습 스택입니다. 목적은 가장 얇은 기준 경로를 로컬에서 검증하는 것입니다.
 
 ```text
-Olist sample JSONL
-  -> Kafka producer
-  -> Kafka topic
-  -> Kafka consumer / Kafka UI
+sample Commerce Events
+  -> Kafka
+  -> Flink
+  -> Paimon
+  -> Spark
+  -> Iceberg REST Catalog
+  -> MinIO
 ```
 
-## 필수 서비스
+이 경로가 안정화된 뒤 StarRocks를 realtime OLAP serving layer로 붙입니다. Airflow는 같은 실행 흐름을 DAG로 묶는 오케스트레이션 계층으로 사용합니다.
+
+## 서비스
 
 | 서비스 | 포트 | 역할 |
 |---|---:|---|
 | Kafka | 9092 | 로컬 KRaft broker |
-| Kafka UI | 8088 | topic/message 확인 |
-| Kafka producer | 없음 | JSONL 이벤트 replay |
-
-## 왜 compose 파일에는 다른 서비스도 있나요?
-
-`docker-compose.lite.yml`에는 4차시 이후에 사용할 Flink, Paimon, Spark, Iceberg, StarRocks 관련 서비스도 함께 들어 있습니다.
-
-하지만 3차시 수업에서는 아래처럼 Kafka 관련 서비스만 띄웁니다.
-
-```bash
-docker compose -f docker-compose.lite.yml up -d --build kafka kafka-init kafka-ui
-```
-
-3차시에서 Flink/Paimon/StarRocks/BI까지 실행하지 않는 이유는, 오늘의 목표가 "Kafka 수집이 정상인지 증거로 설명하는 것"이기 때문입니다.
+| Kafka UI | 8088 | Kafka topic/message browser |
+| Flink JobManager | 8081 | Flink Web UI |
+| MinIO S3 API | 9000 | Object storage API |
+| MinIO Console | 9001 | Object storage UI |
+| Iceberg REST | 8181 | Iceberg REST catalog |
+| Postgres | 15432 | Iceberg REST catalog backend |
+| Spark client | 없음 | Batch job 실행 컨테이너 |
+| Kafka producer | 없음 | 샘플 이벤트 producer 컨테이너 |
+| StarRocks FE | 8030, 9030 | Realtime OLAP frontend |
+| StarRocks CN | 없음 | Realtime OLAP compute node |
+| Airflow | 8080 | 선택 오케스트레이션 UI |
 
 ## 시작
 
 ```bash
 cp .env.example .env
 ./scripts/check-env.sh
-docker compose -f docker-compose.lite.yml up -d --build kafka kafka-init kafka-ui
+docker compose -f docker-compose.lite.yml up -d --build
 ./scripts/smoke-test.sh
 ```
 
 명령을 실행하기 전에 Docker Desktop을 먼저 켜야 합니다. `check-env.sh`는 Docker daemon이 준비되지 않았을 때 초기에 실패하도록 만든 진단 스크립트입니다.
 
-## 주요 URL
+Iceberg catalog용 Postgres는 기본적으로 host port `15432`를 사용합니다. 로컬에 이미 Postgres가 `5432`로 떠 있는 상황을 피하기 위한 설정입니다.
 
-Kafka UI:
+첫 빌드에서는 Kafka, Flink, Spark, Iceberg, MinIO, Postgres, StarRocks 이미지를 내려받기 때문에 시간이 걸릴 수 있습니다. 수업 전에는 아래 명령으로 미리 빌드해두는 것을 권장합니다.
 
-```text
-http://localhost:8088
+```bash
+docker compose -f docker-compose.lite.yml build
 ```
 
-Kafka UI에서 확인할 것:
-
-- `ux-events`, `review-events`, `order-status-events` topic
-- message key
-- partition
-- offset
-- JSON payload
+host port가 이미 사용 중이면 `.env`에서 해당 port 값을 바꾼 뒤 다시 시작합니다.
 
 ## 중지와 초기화
 
-Kafka stack을 중지합니다.
+스택을 중지합니다.
 
 ```bash
 docker compose -f docker-compose.lite.yml down
@@ -74,14 +70,34 @@ docker compose -f docker-compose.lite.yml down
 ./scripts/reset-local-state.sh
 ```
 
-주의: `reset-local-state.sh`는 Kafka data volume도 삭제합니다. 이전에 produce한 메시지도 사라집니다.
+## 주요 URL
 
-## 3차시에서 남겨야 할 증거
+- Kafka UI: http://localhost:8088
+- Flink: http://localhost:8081
+- MinIO Console: http://localhost:9001
+- Iceberg REST: http://localhost:8181
+- StarRocks FE: http://localhost:8030
+- Airflow: http://localhost:8080
 
-| 증거 | 확인 방법 |
-|---|---|
-| topic 존재 | `./scripts/describe-olist-kafka-topics.sh` |
-| partition/RF/ISR | `./scripts/describe-olist-kafka-topics.sh` |
-| message key/payload | `./scripts/consume-kafka.sh` 또는 Kafka UI |
-| partition별 offset | `./scripts/get-kafka-offsets.sh` |
-| consumer lag | `./scripts/check-kafka-lag.sh` |
+MinIO 기본 계정입니다.
+
+```text
+user: minioadmin
+password: minioadmin
+```
+
+Airflow 기본 계정입니다.
+
+```text
+user: admin
+password: admin
+```
+
+## 참고
+
+- Flink는 커스텀 로컬 이미지를 사용합니다. Kafka SQL connector, Paimon Flink bundle, Hadoop shaded jar를 `/opt/flink/lib`에 넣어두기 위해서입니다.
+- Paimon은 MinIO의 `s3://paimon/warehouse`를 warehouse로 사용합니다. Flink, Spark, StarRocks가 같은 object storage 기반 Paimon table을 읽습니다.
+- Iceberg REST는 table data를 MinIO에 저장하고 catalog metadata를 Postgres에 저장합니다.
+- Spark는 batch job 실행용 client 컨테이너입니다. Spark 실습 스크립트는 실행 시점에 Paimon/Iceberg runtime package를 추가하고 shared Ivy volume에 cache합니다.
+- StarRocks는 shared-data 형태로 실행합니다. FE와 CN이 뜨고 table data는 MinIO object storage에 저장합니다.
+- Airflow는 `orchestration` Compose profile로 실행됩니다. 수업용 로컬 패턴에서는 Docker socket을 통해 이미 떠 있는 Flink/Spark 컨테이너를 호출합니다. 이 보안 모델을 프로덕션에 그대로 적용하면 안 됩니다.

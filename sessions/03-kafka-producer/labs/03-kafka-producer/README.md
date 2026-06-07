@@ -2,123 +2,111 @@
 
 ## 목표
 
-Olist 기반 수업용 이벤트를 Kafka topic에 replay하고, broker에서 메시지를 읽어 정상 수집 여부를 확인합니다.
+Olist 기반 수업용 이벤트를 Kafka topic에 넣고, topic/message/offset/lag를 근거로 수집 상태를 확인합니다.
 
-핵심은 실행 성공이 아니라 아래 증거를 남기는 것입니다.
+이번 프로젝트의 Kafka 입력은 세 갈래입니다.
 
 ```text
-topic 존재
-message key와 payload
-partition별 offset 증가
-consumer group lag
+ux-events
+  - 사용자가 무엇을 했는가
+  - append 행동 로그
+
+review-events
+  - 리뷰 상태가 어떻게 보강되는가
+  - review_id 기준 current-state 변경 이벤트
+
+order-status-events
+  - 주문 상태가 어떻게 바뀌는가
+  - order_id 기준 current-state 변경 이벤트
 ```
+
+3차시의 핵심은 "Kafka에 보냈다"가 아니라, 어디까지 정상이라고 말할 증거가 있는지 남기는 것입니다.
 
 ## 사전 준비
 
-Kafka stack을 먼저 실행합니다.
+Lite stack을 먼저 실행합니다.
 
 ```bash
 docker compose -f docker-compose.lite.yml up -d --build kafka kafka-init kafka-ui
 ./scripts/smoke-test.sh
 ```
 
-## Topic 설정 확인
+## UXLog replay
+
+가장 먼저 `ux-events` topic에 append 행동 로그를 replay합니다.
 
 ```bash
-./scripts/reset-olist-kafka-topics.sh
-./scripts/describe-olist-kafka-topics.sh
-```
-
-확인할 내용입니다.
-
-```text
-Topic: ux-events
-PartitionCount: 3
-ReplicationFactor: 1
-Replicas: 1
-Isr: 1
-```
-
-## UX 이벤트 전송
-
-처음에는 100건만 보냅니다.
-
-```bash
-VERBOSE=true ./scripts/produce-olist-ux-events.sh --max-events 100
-```
-
-기대 출력입니다.
-
-```text
-delivered topic=ux-events partition=... offset=... key=sess-...
-sent=100 topic=ux-events input=/workspace/data/sample/olist/ux_events.jsonl
-```
-
-## 메시지 읽기
-
-```bash
-GROUP_ID=de5-debug-consumer \
-KAFKA_TOPIC=ux-events \
-MAX_MESSAGES=5 \
-./scripts/consume-kafka.sh
-```
-
-기대 출력입니다.
-
-```text
-sess-... | {"id":"ux-...","event_type":"product_view","user_session":"sess-...",...}
-```
-
-왼쪽 값은 Kafka message key이고, 오른쪽 JSON이 실제 event payload입니다.
-
-## Offset과 Lag 확인
-
-topic 끝 offset을 확인합니다.
-
-```bash
-KAFKA_TOPIC=ux-events ./scripts/get-kafka-offsets.sh
-```
-
-consumer group lag를 확인합니다.
-
-```bash
-GROUP_ID=de5-debug-consumer ./scripts/check-kafka-lag.sh
-```
-
-## Replay 관찰
-
-같은 sample을 다시 보내면 Kafka offset은 증가합니다.
-
-```bash
+./scripts/reset-olist-kafka-topics.sh ux-events
 ./scripts/produce-olist-ux-events.sh --max-events 100
-KAFKA_TOPIC=ux-events ./scripts/get-kafka-offsets.sh
+KAFKA_TOPIC=ux-events MAX_MESSAGES=5 ./scripts/consume-kafka.sh
+KAFKA_TOPIC=ux-events ./scripts/check-kafka-lag.sh
 ```
 
-멱등 producer는 producer 재시도 중복을 막는 것이지, 같은 파일을 다시 replay하는 것까지 막지는 않습니다.
-
-## 4차시 입력 준비
+전체 샘플을 넣을 때는 `--max-events`를 빼면 됩니다.
 
 ```bash
-./scripts/reset-olist-kafka-topics.sh
+./scripts/reset-olist-kafka-topics.sh ux-events
 ./scripts/produce-olist-ux-events.sh
+```
+
+샘플 기준 전체 `ux-events`는 16,693건입니다.
+
+## Review/Order 변경 이벤트 replay
+
+Paimon upsert 실습까지 이어갈 때는 review와 order status topic도 함께 준비합니다.
+
+```bash
+./scripts/reset-olist-kafka-topics.sh review-events order-status-events
 ./scripts/produce-olist-review-events.sh
 ./scripts/produce-olist-order-events.sh
 ```
 
-기대 입력입니다.
+샘플 기준 입력 건수입니다.
 
 ```text
-ux-events            13,023건
-review-events         5,943건
-order-status-events   7,886건
+ux-events              16,693
+review-events           5,943
+order-status-events     7,886
 ```
+
+## Kafka UI
+
+브라우저에서 Kafka UI를 엽니다.
+
+```text
+http://localhost:8088
+```
+
+확인할 항목입니다.
+
+- `ux-events`, `review-events`, `order-status-events` topic이 있는가?
+- partition count가 3개인가?
+- message key가 `session_id`, `review_id`, `order_id`로 들어가는가?
+- offset이 증가하는가?
+
+## Replay vs CDC vs API
+
+수업용 데이터는 과거 CSV를 JSONL 이벤트로 변환해서 Kafka에 다시 흘리는 replay입니다.
+
+```text
+Replay
+  - 이미 존재하는 과거 데이터를 시간 순서대로 다시 흘림
+  - 실습 재현성과 반복 실행에 좋음
+
+CDC
+  - DB의 insert/update/delete 변경 로그를 캡처해 흘림
+  - 실제 운영의 current-state 동기화에 자주 사용
+
+API
+  - 외부 서비스가 제공하는 endpoint를 호출해 데이터를 가져옴
+  - rate limit, pagination, 재시도 설계가 중요
+```
+
+같은 데이터를 다시 흘려도 결과가 항상 같지는 않습니다. Kafka offset, consumer group, sink primary key, startup mode가 결과를 바꿀 수 있습니다.
 
 ## 수업 중 사용할 질문
 
-- message key를 바꾸면 partition 분배가 어떻게 달라질까요?
-- ux-events는 왜 `user_session`을 key로 쓸까요?
-- review-events는 왜 `review_id`를 key로 쓸까요?
-- order-status-events는 왜 `order_id`를 key로 쓸까요?
-- offset은 무엇을 나타낼까요?
-- lag는 topic 기준일까요, consumer group 기준일까요?
-- 멱등 producer는 replay 중복까지 막아줄까요?
+- Kafka topic에 메시지가 있다는 것과 downstream table이 정상이라는 것은 왜 다른 말일까요?
+- `ux-events`는 왜 append가 자연스럽고, `review-events`는 왜 current-state로 접을까요?
+- offset이 계속 증가하는 것은 어떤 사실을 의미하고, 어떤 사실은 말해주지 못할까요?
+- lag가 커졌을 때 retention이 지나면 어떤 운영 리스크가 생길까요?

@@ -3,7 +3,11 @@ SET 'sql-client.execution.result-mode' = 'tableau';
 
 CREATE CATALOG paimon_lake WITH (
   'type' = 'paimon',
-  'warehouse' = 'file:/warehouse/paimon'
+  'warehouse' = 's3://paimon/warehouse',
+  's3.endpoint' = 'http://minio:9000',
+  's3.access-key' = 'minioadmin',
+  's3.secret-key' = 'minioadmin',
+  's3.path.style.access' = 'true'
 );
 
 USE CATALOG paimon_lake;
@@ -27,5 +31,7 @@ CREATE TABLE IF NOT EXISTS commerce_events_bronze (
   ingested_at TIMESTAMP_LTZ(3),
   PRIMARY KEY (event_id) NOT ENFORCED
 ) WITH (
-  'bucket' = '3'
+  'bucket' = '3',
+  'metadata.iceberg.storage' = 'hadoop-catalog',
+  'full-compaction.delta-commits' = '1'
 );

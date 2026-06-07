@@ -2,7 +2,7 @@
 set -euo pipefail
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.lite.yml}"
-TOPIC="${KAFKA_TOPIC:-ux-events}"
+TOPIC="${KAFKA_TOPIC:-commerce-events}"
 
 docker compose -f "${COMPOSE_FILE}" exec -T kafka \
   /opt/kafka/bin/kafka-topics.sh \

@@ -220,7 +220,7 @@ def make_base_event(
     customer_id: str,
     item: ItemContext | None,
     session_id: str,
-    order_id: str,
+    order_id: str | None,
 ) -> dict:
     product_id = item.product_id if item else None
     category_id = item.category_id if item else None
@@ -296,6 +296,68 @@ def generate_ux_events(
                 event["generated_from"] = "olist_order_item"
                 event["is_synthetic_ux"] = True
                 yield event
+
+    for order in selected_orders:
+        order_id = order["order_id"]
+        items = items_by_order.get(order_id, [])
+        if not items:
+            continue
+
+        customer_id = order["customer_id"]
+        item = items[0]
+        reviews = reviews_by_order.get(order_id, [])
+
+        for review in reviews:
+            review_id = review["review_id"]
+            review_created_at = parse_ts(review.get("review_creation_date"))
+            if review_created_at is None:
+                continue
+
+            sentiment = sentiment_from_score(review.get("review_score") or "")
+            if sentiment == "negative":
+                session_count = 2
+            elif sentiment == "neutral":
+                session_count = 1 if stable_int(review_id, 2) == 0 else 0
+            elif sentiment == "positive":
+                session_count = 1 if stable_int(review_id, 10) == 0 else 0
+            else:
+                session_count = 0
+
+            for attempt in range(session_count):
+                synthetic_customer_id = f"review-reader-{review_id}-{attempt}"
+                synthetic_order_id = f"browse-{review_id}-{attempt}"
+                session_id = stable_id("sess", synthetic_customer_id, synthetic_order_id, length=24)
+                base_time = review_created_at + timedelta(
+                    days=1 + attempt,
+                    minutes=stable_int(f"{review_id}-{attempt}", 360),
+                )
+                timeline = [
+                    ("search_result_click", base_time),
+                    ("product_view", base_time + timedelta(minutes=2)),
+                    ("review_impression", base_time + timedelta(minutes=5)),
+                ]
+                if sentiment == "negative" or stable_int(f"expand-{review_id}-{attempt}", 2) == 0:
+                    timeline.append(("review_expand", base_time + timedelta(minutes=6)))
+                if sentiment == "positive":
+                    timeline.append(("add_to_cart", base_time + timedelta(minutes=11)))
+
+                for event_type, event_time in timeline:
+                    event_id = stable_id("ux", synthetic_order_id, item.product_id, event_type, event_time.isoformat())
+                    event = make_base_event(
+                        event_id=event_id,
+                        event_time=event_time,
+                        event_type=event_type,
+                        customer_id=synthetic_customer_id,
+                        item=item,
+                        session_id=session_id,
+                        order_id=None,
+                    )
+                    event["order_status_at_source"] = "browse_only"
+                    event["generated_from"] = "olist_review_influenced_browse_simulation"
+                    event["source_review_id"] = review_id
+                    event["review_sentiment_at_source"] = sentiment
+                    event["is_synthetic_ux"] = True
+                    yield event
 
 
 def generate_order_state_events(selected_orders: list[dict[str, str]]) -> Iterable[dict]:
@@ -485,6 +547,7 @@ def main() -> None:
         },
         "notes": [
             "UX events are simulated from real Olist order/order_item/product/review relationships.",
+            "Additional browse-only UX sessions are generated from review sentiment to make review impact and PDP exit analysis observable.",
             "Order and review state events preserve real Olist keys and timestamps where available.",
             "product_id is a deterministic numeric surrogate for classroom systems; source_product_id keeps the original Olist key.",
         ],

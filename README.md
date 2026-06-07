@@ -34,6 +34,7 @@ cd sessions/02-local-docker-env
 | 1차시 | `sessions/01-architecture-blueprint` | 전체 아키텍처 청사진 |
 | 2차시 | `sessions/02-local-docker-env` | 로컬 Docker 실습 환경 |
 | 3차시 | `sessions/03-kafka-producer` | Kafka UX 이벤트 수집 |
+| 4차시 | `sessions/04-flink-paimon` | Flink와 Paimon Bronze |
 
 ## 실습 전 공통 확인
 

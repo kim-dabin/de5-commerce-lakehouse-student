@@ -11,8 +11,10 @@ RUN set -eux; \
     wget -nv -P /opt/flink/lib \
       "https://repo.maven.apache.org/maven2/org/apache/paimon/paimon-flink-1.20/${PAIMON_VERSION}/paimon-flink-1.20-${PAIMON_VERSION}.jar"; \
     wget -nv -P /opt/flink/lib \
+      "https://repo.maven.apache.org/maven2/org/apache/paimon/paimon-s3/${PAIMON_VERSION}/paimon-s3-${PAIMON_VERSION}.jar"; \
+    wget -nv -P /opt/flink/lib \
       "https://repo.maven.apache.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/${FLINK_SHADED_HADOOP_VERSION}/flink-shaded-hadoop-2-uber-${FLINK_SHADED_HADOOP_VERSION}.jar"; \
-    mkdir -p /workspace /warehouse/paimon /opt/flink/checkpoints
+    mkdir -p /workspace /opt/flink/checkpoints
 
 COPY docker/flink/entrypoint.sh /usr/local/bin/de5-flink-entrypoint.sh
 

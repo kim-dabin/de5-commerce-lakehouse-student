@@ -22,9 +22,10 @@ cp .env.example .env
 
 ```bash
 docker compose -f docker-compose.lite.yml up -d --build
-./scripts/reset-olist-kafka-topics.sh ux-events review-events
+./scripts/reset-olist-kafka-topics.sh
 ./scripts/produce-olist-ux-events.sh
 ./scripts/produce-olist-review-events.sh
+./scripts/produce-olist-order-events.sh
 ./scripts/reset-olist-paimon.sh
 ./scripts/run-flink-olist-paimon.sh
 ./scripts/query-olist-paimon.sh

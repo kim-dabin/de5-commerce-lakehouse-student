@@ -2,27 +2,29 @@
 
 로컬 실습 중 자주 만날 수 있는 오류와 복구 방법입니다.
 
-## Flink SQL Client가 Paimon 파일을 root 권한으로 만드는 경우
+## Flink가 Paimon MinIO warehouse에 접근하지 못하는 경우
 
 증상입니다.
 
 ```text
-Mkdirs failed to create file:/warehouse/paimon/.../bucket-0
+No FileSystem for scheme "s3"
+Unable to access s3://paimon/warehouse
+Connection refused: minio:9000
 ```
 
 원인입니다.
 
-SQL Client를 `root`로 실행했지만 Flink TaskManager process는 `flink` 사용자로 파일을 쓰기 때문에 권한이 꼬인 상황입니다.
+Paimon warehouse는 MinIO의 `s3://paimon/warehouse`를 사용합니다. Flink image에 `paimon-s3` jar가 없거나, MinIO가 아직 준비되지 않았거나, catalog의 S3 endpoint/access key/path-style 설정이 맞지 않으면 접근에 실패합니다.
 
 해결 방법입니다.
 
 ```bash
-./scripts/run-flink-paimon-bronze.sh
-./scripts/query-paimon-bronze.sh
-./scripts/reset-paimon-bronze.sh
+docker compose -f docker-compose.lite.yml up -d --build minio minio-init flink-jobmanager flink-taskmanager
+./scripts/smoke-test.sh
+./scripts/reset-olist-paimon.sh
 ```
 
-제공된 스크립트는 ownership을 복구하고 SQL Client를 `flink` 사용자로 실행합니다.
+`docker/flink/Dockerfile`에는 `paimon-flink`, `paimon-s3`, `flink-shaded-hadoop` jar가 포함되어 있어야 합니다. Flink SQL의 Paimon catalog는 `s3://paimon/warehouse`, `http://minio:9000`, `s3.path.style.access=true`를 사용합니다.
 
 ## Paimon catalog가 Hadoop configuration을 찾지 못하는 경우
 
