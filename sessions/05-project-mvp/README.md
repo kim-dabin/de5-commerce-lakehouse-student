@@ -176,11 +176,31 @@ UI에는 `start`, `finish` dummy task까지 보일 수 있습니다.
 
 | 문서 | 용도 |
 |---|---|
+| `CUSTOMIZE.md` | 수업 스크립트를 자기 포트폴리오용으로 바꾸는 방법 |
 | `docs/session-05-mart-design-guide.html` | L0/L1/L2 mart 설계 설명 |
 | `docs/bi-dashboard-student-guide.md` | BI 대시보드 읽는 법 |
 | `docs/session-05-airflow-dag-summary.md` | Airflow DAG 설계 요약 |
 | `docs/iceberg-catalog-metadata-guide.html` | Iceberg REST/PG/MinIO/StarRocks cache 구조 |
 | `docs/olist-bi-pipeline-runbook.md` | 전체 파이프라인 검증 runbook |
+| `docs/my-portfolio-plan-template.md` | 최종 발표/포트폴리오 정리 템플릿 |
+
+## 수강생 커스터마이징 안내
+
+공통 실습을 그대로 실행하는 것에서 끝내지 말고, 최종 발표 전까지 아래 문서를 참고해 본인만의 질문과 지표를 정리해보세요.
+
+```text
+CUSTOMIZE.md
+```
+
+추천 방향은 다음과 같습니다.
+
+- Kafka key와 replay 방식 해석하기
+- Flink/Paimon의 append/upsert 설계 설명하기
+- Spark/Iceberg mart에 본인만의 지표 추가하기
+- Streamlit BI 화면이나 StarRocks query를 본인 질문에 맞게 바꾸기
+- Airflow DAG에 검증 task를 추가하거나 기대값을 조정하기
+
+중요한 것은 코드를 많이 바꾸는 것이 아니라, 바꾼 이유와 검증 증거를 설명하는 것입니다.
 
 ## 실패 시 제출할 것
 
