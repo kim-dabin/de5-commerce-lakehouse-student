@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4차시 과제 - Flink/Paimon 증거 기반 검증</title>
+  <style>
+    :root {
+      --bg: #f7f5ef;
+      --paper: #ffffff;
+      --ink: #202124;
+      --muted: #5f6368;
+      --line: #dedbd2;
+      --green: #1f7a4d;
+      --green-soft: #e8f4ed;
+      --blue: #1f5f8b;
+      --blue-soft: #e9f2fb;
+      --purple: #6f42c1;
+      --purple-soft: #f1eafb;
+      --amber: #9a5b00;
+      --amber-soft: #fff4dc;
+      --red: #b3261e;
+      --red-soft: #fdecea;
+      --code: #232323;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1080px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 40px 0 64px;
+    }
+
+    header {
+      padding: 34px 36px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(25, 28, 31, 0.06);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      color: var(--green);
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 10px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    p { margin: 0 0 12px; }
+
+    ul, ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+    }
+
+    li { margin: 6px 0; }
+
+    a { color: var(--blue); }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.94em;
+      background: rgba(32, 33, 36, 0.08);
+      padding: 2px 5px;
+      border-radius: 5px;
+    }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 16px 18px;
+      overflow-x: auto;
+      background: var(--code);
+      color: #f6f7f8;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #f0eee8;
+      font-weight: 800;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .lead {
+      max-width: 880px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .meta-card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfaf7;
+    }
+
+    .meta-card strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    section {
+      margin-top: 22px;
+      padding: 28px 30px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(25, 28, 31, 0.04);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .card {
+      padding: 18px 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfaf7;
+    }
+
+    .card h3:first-child { margin-top: 0; }
+
+    .required {
+      border-top: 6px solid var(--green);
+      background: linear-gradient(180deg, var(--green-soft), #ffffff 70%);
+    }
+
+    .deep {
+      border-top: 6px solid var(--purple);
+      background: linear-gradient(180deg, var(--purple-soft), #ffffff 70%);
+    }
+
+    .note {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--blue-soft);
+      color: #153b56;
+      margin-top: 14px;
+    }
+
+    .warn {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid #f1c36d;
+      background: var(--amber-soft);
+      color: #533400;
+      margin-top: 14px;
+    }
+
+    .danger {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid #efb8b4;
+      background: var(--red-soft);
+      color: #5f1712;
+      margin-top: 14px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .step {
+      min-height: 92px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fbfaf7;
+    }
+
+    .step strong {
+      display: block;
+      color: var(--green);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .template {
+      background: #111827;
+      border-radius: 12px;
+      color: #f9fafb;
+      padding: 18px;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .footer {
+      margin-top: 26px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media (max-width: 860px) {
+      main { width: min(100% - 24px, 1080px); padding-top: 24px; }
+      header, section { padding: 24px 18px; }
+      .meta, .grid, .flow { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      main { width: 100%; padding: 0; }
+      header, section {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+      .card, .note, .warn, .danger, pre, table {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .print-new-page {
+        break-before: page;
+        page-break-before: always;
+      }
+      a { color: var(--ink); text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow"><span class="dot"></span> 데이터 엔지니어 5기 라이브 스터디 · 4차시 과제</div>
+      <h1>Flink/Paimon 적재를<br>증거로 설명하기</h1>
+      <p class="lead">이번 과제의 목적은 "명령어를 실행했다"가 아니라, Kafka -> Flink -> Paimon 각 계층에서 어디까지 정상인지 증거로 설명하는 것입니다.</p>
+      <div class="meta">
+        <div class="meta-card"><strong>마감</strong>2026년 6월 12일(금) 17:00</div>
+        <div class="meta-card"><strong>제출처</strong>Discord 4차시 채널</div>
+        <div class="meta-card"><strong>통과 기준</strong>필수 항목 제출. 실패 로그도 산출물로 인정</div>
+      </div>
+    </header>
+
+    <section>
+      <h2>오늘 만든 흐름</h2>
+      <p>Olist 기반 이벤트를 Kafka topic에서 읽고, Flink SQL streaming job으로 Paimon Bronze/current-state 테이블에 적재합니다.</p>
+      <div class="flow">
+        <div class="step"><strong>1. Kafka</strong>ux/review/order 이벤트를 topic에 보관</div>
+        <div class="step"><strong>2. Flink SQL</strong>Kafka source를 계속 구독하는 RUNNING job</div>
+        <div class="step"><strong>3. Paimon</strong>append table과 primary key table에 저장</div>
+        <div class="step"><strong>4. MinIO</strong>Paimon warehouse 파일을 object storage에 보관</div>
+        <div class="step"><strong>5. Spark/Jupyter</strong>snapshot, files, Iceberg-compatible metadata 관찰</div>
+      </div>
+      <div class="note">
+        <strong>핵심 구분:</strong> <code>ux_events_bronze</code>는 행동 발생 사실을 계속 쌓는 append table이고, <code>review_current</code>와 <code>order_current</code>는 같은 key의 최신 상태를 유지하는 current-state table입니다.
+      </div>
+    </section>
+
+    <section>
+      <h2>먼저 실행할 명령어</h2>
+      <p>아래 명령은 4차시 폴더에서 실행합니다.</p>
+      <pre><code>cd de5-commerce-lakehouse-student/sessions/04-flink-paimon
+git pull
+cp .env.example .env  # 이미 있으면 생략 가능
+./scripts/check-env.sh</code></pre>
+
+      <h3>기준 실행 흐름</h3>
+      <pre><code>docker compose -f docker-compose.lite.yml up -d --build
+
+./scripts/reset-olist-kafka-topics.sh
+./scripts/reset-olist-paimon.sh
+./scripts/run-flink-olist-paimon-streaming.sh
+
+./scripts/produce-olist-ux-events.sh
+./scripts/produce-olist-review-events.sh
+./scripts/produce-olist-order-events.sh
+
+./scripts/query-olist-paimon.sh
+./scripts/query-olist-paimon-ops.sh</code></pre>
+
+      <div class="warn">
+        <strong>주의:</strong> <code>reset-olist-paimon.sh</code> 직후에 Jupyter나 query를 실행하면 table not found가 날 수 있습니다. reset은 테이블을 지우는 단계이고, <code>run-flink-olist-paimon-streaming.sh</code>가 테이블을 다시 만들고 streaming job을 올리는 단계입니다.
+      </div>
+    </section>
+
+    <section>
+      <h2>필수 제출물</h2>
+      <p>아래 항목까지 제출하면 통과입니다. 캡처만 올리지 말고, 각 캡처가 무엇을 증명하는지 한 줄씩 적어주세요.</p>
+
+      <div class="grid">
+        <div class="card required">
+          <h3>1. 실행 결과 캡처</h3>
+          <ul>
+            <li><code>./scripts/check-env.sh</code> 결과</li>
+            <li><code>docker compose -f docker-compose.lite.yml ps</code> 결과</li>
+            <li><code>./scripts/run-flink-olist-paimon-streaming.sh</code> 실행 후 Job ID 3개 또는 Flink UI RUNNING 화면</li>
+            <li><code>./scripts/query-olist-paimon.sh</code> 결과</li>
+            <li>실패했다면 실행한 명령어와 에러 메시지</li>
+          </ul>
+        </div>
+
+        <div class="card required">
+          <h3>2. 기대 count 확인</h3>
+          <p>아래 값과 본인 결과를 비교해주세요. 환경에 따라 streaming 처리 중에는 잠시 값이 덜 찰 수 있습니다. 조금 기다린 뒤 다시 조회해도 됩니다.</p>
+          <table>
+            <tr><th>테이블</th><th>기대값</th><th>해석</th></tr>
+            <tr><td><code>ux_events_bronze</code></td><td>16,693</td><td>행동 이벤트 append</td></tr>
+            <tr><td><code>review_current</code></td><td>1,971</td><td><code>review_id</code> 기준 current-state</td></tr>
+            <tr><td><code>order_current</code></td><td>2,000</td><td><code>order_id</code> 기준 current-state</td></tr>
+          </table>
+        </div>
+
+        <div class="card required">
+          <h3>3. append vs upsert 설명</h3>
+          <ul>
+            <li><code>ux_events_bronze</code>는 왜 append가 자연스러운가?</li>
+            <li><code>review_current</code>는 왜 <code>review_id</code> primary key가 필요한가?</li>
+            <li><code>order_current</code>는 왜 input event 수보다 row count가 작아지는가?</li>
+          </ul>
+        </div>
+
+        <div class="card required">
+          <h3>4. 검증 체인 표 작성</h3>
+          <p>아래 표를 본인 결과로 채워주세요. 핵심은 "어디까지 정상인지"를 계층별로 분리하는 것입니다.</p>
+          <table>
+            <tr><th>계층</th><th>내가 확인한 증거</th><th>정상 기준</th><th>이상할 때 다음 확인</th></tr>
+            <tr><td>Kafka</td><td>topic/message/offset</td><td>메시지 존재, offset 증가</td><td>producer log, topic, listener</td></tr>
+            <tr><td>Flink</td><td>RUNNING job, Records, checkpoint</td><td>job 3개 실행, source/sink 흐름 존재</td><td>Flink UI, task log, source/sink SQL</td></tr>
+            <tr><td>Paimon</td><td>row count, event 분포, raw_json</td><td>기대 count와 분포 일치</td><td>PK, warehouse path, raw payload</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>필수 질문</h2>
+      <p>아래 질문에 본인 말로 짧게 답해주세요. 정답 문장을 외우는 과제가 아니라, 지금 구조를 스스로 설명하는 연습입니다.</p>
+      <ol>
+        <li><strong>reset 직후 table not found가 나는 이유</strong>를 설명해주세요.</li>
+        <li><strong>Flink job이 RUNNING이라는 것</strong>과 <strong>Paimon row count가 기대값이라는 것</strong>은 각각 무엇을 증명하나요?</li>
+        <li><strong>raw_json을 남기지 않았다면</strong> JSON parsing이나 schema 변경 장애에서 무엇을 잃게 될까요?</li>
+        <li><strong>Paimon row count가 0</strong>이라면 Kafka, Flink, Paimon 중 어디부터 어떤 순서로 확인할까요?</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>심화 선택</h2>
+      <p>심화는 선택입니다. 한 가지 이상 해보면 5차시와 6차시에서 운영 관점으로 이어가기 좋습니다.</p>
+
+      <div class="grid">
+        <div class="card deep">
+          <h3>A. Snapshot / time travel 관찰</h3>
+          <pre><code>./scripts/query-olist-paimon-ops.sh</code></pre>
+          <ul>
+            <li><code>review_current$snapshots</code> 결과에서 <code>APPEND</code>와 <code>COMPACT</code> 흐름을 확인</li>
+            <li>특정 snapshot id 기준 time travel 결과 확인</li>
+            <li>"문제 직전 정상 기준점"으로 snapshot을 어떻게 쓸 수 있는지 3줄 정리</li>
+          </ul>
+        </div>
+
+        <div class="card deep">
+          <h3>B. JupyterLab으로 Spark 관찰</h3>
+          <pre><code>docker compose -f docker-compose.lite.yml --profile query up -d --build jupyter</code></pre>
+          <ul>
+            <li><a href="http://localhost:8888/lab">http://localhost:8888/lab</a> 접속</li>
+            <li><code>notebooks/de5-spark-starter.ipynb</code> 실행</li>
+            <li><code>Paimon $snapshots</code>, <code>VERSION AS OF</code>, <code>Iceberg snapshots</code> 중 하나 캡처</li>
+          </ul>
+          <div class="note">Jupyter가 table을 못 찾으면 먼저 streaming ingest가 실행됐는지 확인하고, 필요하면 커널을 재시작해주세요.</div>
+        </div>
+
+        <div class="card deep">
+          <h3>C. MinIO에서 Paimon 파일 보기</h3>
+          <ul>
+            <li><a href="http://localhost:9001">http://localhost:9001</a> 접속</li>
+            <li>계정: <code>minioadmin</code> / 비밀번호: <code>minioadmin</code></li>
+            <li><code>paimon</code> bucket 아래 <code>warehouse/bronze.db/</code> 경로 확인</li>
+            <li><code>snapshot -> manifest -> data file</code> 구조를 본인 말로 설명</li>
+          </ul>
+        </div>
+
+        <div class="card deep">
+          <h3>D. 같은 데이터 replay 실험</h3>
+          <p>produce 스크립트를 한 번 더 실행한 뒤 count 변화를 관찰합니다.</p>
+          <pre><code>./scripts/produce-olist-ux-events.sh
+./scripts/produce-olist-review-events.sh
+./scripts/produce-olist-order-events.sh
+./scripts/query-olist-paimon.sh</code></pre>
+          <ul>
+            <li><code>ux_events_bronze</code>는 append라 증가할 수 있습니다.</li>
+            <li><code>review_current</code>, <code>order_current</code>는 같은 key 기준으로 접혀 row count가 크게 변하지 않을 수 있습니다.</li>
+            <li>이 차이를 Kafka 중복 방지와 downstream upsert 관점에서 설명해보세요.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>자주 만나는 오류</h2>
+
+      <h3>1. <code>Could not find a file io implementation for scheme 's3'</code></h3>
+      <p>Flink 이미지 안에 <code>paimon-s3</code> jar가 없는 상태입니다. 최신 코드 pull 후 Flink 이미지를 다시 빌드하세요.</p>
+      <pre><code>docker compose -f docker-compose.lite.yml exec -T flink-jobmanager \
+  bash -lc "ls -1 /opt/flink/lib | grep paimon-s3"
+
+docker compose -f docker-compose.lite.yml stop flink-jobmanager flink-taskmanager
+docker compose -f docker-compose.lite.yml build --no-cache flink-jobmanager
+docker compose -f docker-compose.lite.yml up -d --force-recreate flink-jobmanager flink-taskmanager</code></pre>
+
+      <h3>2. Jupyter에서 <code>TABLE_OR_VIEW_NOT_FOUND</code></h3>
+      <p>reset 후 streaming ingest를 아직 실행하지 않았거나, Spark 커널이 이전 상태를 보고 있을 수 있습니다.</p>
+      <pre><code>./scripts/run-flink-olist-paimon-streaming.sh
+./scripts/query-olist-paimon.sh
+
+# 그래도 안 되면 Jupyter 커널 재시작 후 다시 실행</code></pre>
+
+      <h3>3. JupyterLab 접속 불가</h3>
+      <p>Jupyter는 기본 profile이 아니라 <code>query</code> profile로 띄웁니다. 8888 포트가 충돌하면 포트를 바꿔 실행하세요.</p>
+      <pre><code>docker compose -f docker-compose.lite.yml --profile query up -d --build jupyter
+
+# 8888 포트가 이미 사용 중이면
+JUPYTER_HOST_PORT=18888 docker compose -f docker-compose.lite.yml --profile query up -d --build jupyter</code></pre>
+    </section>
+
+    <section class="print-new-page">
+      <h2>제출 방식</h2>
+      <p>Discord에는 긴 양식을 그대로 채울 필요가 없습니다. 본인이 편한 형식으로 이미지, PDF, Markdown, Notion 링크 등을 올려도 됩니다.</p>
+      <div class="note">
+        제출물은 아래 3가지만 확인되면 충분합니다. 중요한 것은 예쁘게 정리하는 것이 아니라, 실행 결과를 근거로 "어디까지 정상인지" 설명하는 것입니다.
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h3>1. 실행 증거</h3>
+          <ul>
+            <li>Flink RUNNING job 3개</li>
+            <li><code>query-olist-paimon.sh</code> 결과</li>
+            <li>실패했다면 실행 명령어와 에러 메시지</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>2. 결과 해석</h3>
+          <ul>
+            <li>세 테이블 row count 비교</li>
+            <li>append table과 current-state table의 차이</li>
+            <li>reset 직후 table not found가 날 수 있는 이유</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>3. 검증 체인</h3>
+          <ul>
+            <li>Kafka에서 본 증거</li>
+            <li>Flink에서 본 증거</li>
+            <li>Paimon에서 본 증거</li>
+            <li>문제가 생기면 어디부터 볼지</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>4. 심화 선택</h3>
+          <ul>
+            <li>snapshot/time travel</li>
+            <li>Jupyter/Spark 관찰</li>
+            <li>MinIO 파일 구조</li>
+            <li>같은 데이터 replay 실험</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      이 과제의 핵심은 성공 화면 수집이 아니라, 각 계층의 증거를 연결해 "어디까지 정상인지" 설명하는 것입니다.
+    </div>
+  </main>
+</body>
+</html>
