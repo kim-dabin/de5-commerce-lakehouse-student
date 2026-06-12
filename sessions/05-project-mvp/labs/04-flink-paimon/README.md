@@ -82,6 +82,33 @@ Flink UI에서 ingestion job이 RUNNING이면 정상입니다.
 새로 replay한 메시지는 job이 살아 있는 동안 계속 Paimon에 반영됩니다.
 ```
 
+Streaming SQL은 job별로 분리되어 있습니다.
+
+```text
+13a-insert-olist-ux-events-streaming.sql      -> ux_events_bronze
+13b-insert-olist-review-current-streaming.sql -> review_current
+13c-insert-olist-order-current-streaming.sql  -> order_current
+```
+
+이렇게 나눈 이유는 운영 관점에서 각 ingestion path를 별도의 Flink job으로 다루기 위해서입니다.
+나중에 savepoint/restore를 실습할 때도 UX job, review job, order job을 따로 멈추고 복구할 수 있습니다.
+
+저장 모델 기준으로도 나누어 실행할 수 있습니다.
+
+```bash
+# append fact: 발생 사실을 계속 쌓는 UX 행동 로그
+./scripts/run-flink-olist-paimon-streaming.sh append
+
+# upsert current-state: 같은 key의 최신 상태를 유지하는 리뷰/주문
+./scripts/run-flink-olist-paimon-streaming.sh upsert
+```
+
+기존 `13-insert-olist-streaming.sql`는 레거시 안내 파일입니다. 직접 실행하지 말고 아래 스크립트를 사용합니다.
+
+```bash
+./scripts/run-flink-olist-paimon-streaming.sh
+```
+
 환경 문제를 분리하거나 빠르게 count만 재현해야 할 때는 보조 경로로 bounded job을 사용할 수 있습니다.
 
 ```bash

@@ -65,6 +65,26 @@ review_current
 order_current
 ```
 
+`./scripts/run-flink-olist-paimon-streaming.sh`는 내부적으로 streaming SQL을 job별로 나누어 제출합니다.
+
+```text
+13a -> ux_events_bronze
+13b -> review_current
+13c -> order_current
+```
+
+필요하면 저장 모델 기준으로 나누어 실행할 수도 있습니다.
+
+```bash
+# append fact job만 제출
+./scripts/run-flink-olist-paimon-streaming.sh append
+
+# current-state upsert job 2개만 제출
+./scripts/run-flink-olist-paimon-streaming.sh upsert
+```
+
+이렇게 나누면 이후 savepoint/restore나 장애 대응 실습에서 job별로 멈추고 복구하기 쉽습니다.
+
 Paimon 기대 count입니다.
 
 ```text

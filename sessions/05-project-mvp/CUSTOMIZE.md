@@ -45,7 +45,7 @@
 | 데이터 | `data/sample/olist/*.jsonl` | 입력 이벤트, 필드, 샘플 크기 | `wc -l`, JSON 샘플 확인 |
 | Kafka replay | `scripts/produce-olist-*.sh` | topic, input file, key field | Kafka UI, consume, offset |
 | Producer | `labs/03-kafka-producer/producer.py` | 전송 옵션, key 추출 방식, dry-run | `--dry-run`, sent count |
-| Flink source/sink | `labs/04-flink-paimon/13-insert-olist-streaming.sql` | Kafka topic, JSON parsing, Paimon table schema | Flink UI, Paimon count |
+| Flink source/sink | `labs/04-flink-paimon/13a/13b/13c-*.sql` | Kafka topic, JSON parsing, Paimon table schema | Flink UI, Paimon count |
 | Paimon 검증 | `scripts/query-olist-paimon.sh`, `labs/04-flink-paimon/12-query-olist-tables.sql` | count, 분포, snapshot/files 조회 | 쿼리 결과 |
 | Spark mart | `labs/05-spark-iceberg/transform_to_iceberg.py` | clean/current/aggregate table, 지표 계산 | Iceberg table count |
 | BI metric | `labs/05-spark-iceberg/query_bi_metrics.py` | 최종 지표, JSON payload | `./scripts/query-bi-metrics.sh` |
@@ -131,7 +131,9 @@ data/sample/olist/*.jsonl
 주로 바꿀 파일:
 
 ```text
-labs/04-flink-paimon/13-insert-olist-streaming.sql
+labs/04-flink-paimon/13a-insert-olist-ux-events-streaming.sql
+labs/04-flink-paimon/13b-insert-olist-review-current-streaming.sql
+labs/04-flink-paimon/13c-insert-olist-order-current-streaming.sql
 labs/04-flink-paimon/12-query-olist-tables.sql
 scripts/query-olist-paimon.sh
 ```
@@ -157,6 +159,16 @@ review/order 이벤트 이력도 append bronze로 남긴다면 어떤 장점이 
 ./scripts/reset-olist-paimon.sh
 ./scripts/run-flink-olist-paimon-streaming.sh
 ./scripts/query-olist-paimon.sh
+```
+
+저장 모델별로 확인하고 싶다면 아래처럼 나눠 실행할 수 있습니다.
+
+```bash
+# append-only fact job
+./scripts/run-flink-olist-paimon-streaming.sh append
+
+# primary-key upsert current-state jobs
+./scripts/run-flink-olist-paimon-streaming.sh upsert
 ```
 
 ### 3-2. Iceberg mart를 추가하기
