@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -23,10 +26,26 @@ st.set_page_config(
 )
 
 
+def normalize_command(command: list[str]) -> list[str]:
+    if command and command[0].endswith(".sh"):
+        bash = shutil.which("bash")
+        if not bash:
+            raise RuntimeError(
+                "bash를 찾을 수 없습니다. Windows에서는 WSL2 Ubuntu 또는 Git Bash에서 "
+                "Streamlit BI를 실행하거나 bash가 PATH에 잡혀 있는지 확인하세요."
+            )
+        return [bash, *command]
+    return command
+
+
 def run_metric_command(command: list[str], prefix: str, timeout: int = 180) -> dict[str, Any]:
+    env = os.environ.copy()
+    env.setdefault("MSYS_NO_PATHCONV", "1")
+    env.setdefault("PYTHON_BIN", Path(sys.executable).as_posix())
     result = subprocess.run(
-        command,
+        normalize_command(command),
         cwd=ROOT,
+        env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,

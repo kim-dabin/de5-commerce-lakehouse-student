@@ -21,4 +21,4 @@ if ! docker compose -f "${COMPOSE_FILE}" exec -T starrocks-fe sh -lc \
   exit 1
 fi
 
-python3 tools/query_starrocks_iceberg_bi_metrics.py
+"${PYTHON_BIN:-python3}" tools/query_starrocks_iceberg_bi_metrics.py
