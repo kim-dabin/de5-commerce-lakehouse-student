@@ -1,0 +1,12 @@
+{
+  "argv": ["python3", "-m", "ipykernel_launcher", "-f", "{connection_file}"],
+  "display_name": "PySpark (DE5 Lakehouse)",
+  "language": "python",
+  "env": {
+    "SPARK_HOME": "/opt/spark",
+    "PYSPARK_PYTHON": "python3",
+    "PYSPARK_DRIVER_PYTHON": "python3",
+    "IPYTHONDIR": "/home/spark/.ipython-pyspark",
+    "PYSPARK_SUBMIT_ARGS": "--packages org.apache.paimon:paimon-spark-3.5_2.12:1.4.1,org.apache.paimon:paimon-s3:1.4.1,org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.11.0,org.apache.iceberg:iceberg-aws-bundle:1.11.0 --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions,org.apache.paimon.spark.extensions.PaimonSparkSessionExtensions --conf spark.sql.catalog.paimon_lake=org.apache.paimon.spark.SparkCatalog --conf spark.sql.catalog.paimon_lake.warehouse=s3://paimon/warehouse --conf spark.sql.catalog.paimon_lake.s3.endpoint=http://minio:9000 --conf spark.sql.catalog.paimon_lake.s3.access-key=minioadmin --conf spark.sql.catalog.paimon_lake.s3.secret-key=minioadmin --conf spark.sql.catalog.paimon_lake.s3.path.style.access=true --conf spark.sql.catalog.iceberg_lake=org.apache.iceberg.spark.SparkCatalog --conf spark.sql.catalog.iceberg_lake.type=rest --conf spark.sql.catalog.iceberg_lake.uri=http://iceberg-rest:8181 --conf spark.sql.catalog.iceberg_lake.warehouse=s3://warehouse/ --conf spark.sql.catalog.iceberg_lake.io-impl=org.apache.iceberg.aws.s3.S3FileIO --conf spark.sql.catalog.iceberg_lake.s3.endpoint=http://minio:9000 --conf spark.sql.catalog.iceberg_lake.s3.path-style-access=true --conf spark.sql.catalog.iceberg_lake.client.region=us-east-1 --conf spark.sql.catalog.iceberg_lake.cache-enabled=false --conf spark.sql.session.timeZone=UTC pyspark-shell"
+  }
+}

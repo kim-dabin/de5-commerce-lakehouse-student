@@ -19,10 +19,10 @@ repo root 또는 차시 폴더 안에서 아래 명령을 실행합니다.
 git pull
 ```
 
-그 다음 해당 차시 폴더로 이동합니다. 예를 들어 2차시 수업 전에는 아래처럼 이동합니다.
+그 다음 해당 차시 폴더로 이동합니다. 예를 들어 5차시 수업 전에는 아래처럼 이동합니다.
 
 ```bash
-cd sessions/02-local-docker-env
+cd sessions/05-project-mvp
 ```
 
 각 차시 폴더 안의 `DOWNLOAD_GUIDE.md`를 먼저 읽고, 그 폴더 안에서 명령을 실행합니다.
@@ -35,6 +35,7 @@ cd sessions/02-local-docker-env
 | 2차시 | `sessions/02-local-docker-env` | 로컬 Docker 실습 환경 |
 | 3차시 | `sessions/03-kafka-producer` | Kafka UX 이벤트 수집 |
 | 4차시 | `sessions/04-flink-paimon` | Flink와 Paimon Bronze |
+| 5차시 | `sessions/05-project-mvp` | 프로젝트 MVP 완성 |
 
 ## 실습 전 공통 확인
 

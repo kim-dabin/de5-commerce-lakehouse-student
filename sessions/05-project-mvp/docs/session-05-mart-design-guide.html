@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>5차시 마트 테이블 설계 가이드</title>
+  <style>
+    :root {
+      --bg: #f8f4ec;
+      --paper: #fffdf8;
+      --ink: #172033;
+      --muted: #536172;
+      --line: #dbe2ea;
+      --soft: #eef3f6;
+      --orange: #d97706;
+      --orange-dark: #b45309;
+      --orange-soft: #fff4df;
+      --teal: #0f9488;
+      --teal-dark: #0f766e;
+      --teal-soft: #e4f4f2;
+      --green: #2f8f3e;
+      --green-soft: #e8f4e9;
+      --blue: #2563eb;
+      --blue-soft: #e8f0ff;
+      --purple: #6d28d9;
+      --purple-soft: #f0eaff;
+      --red: #b42318;
+      --red-soft: #fff0ed;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.6;
+    }
+
+    .topbar {
+      height: 7px;
+      background: linear-gradient(90deg, var(--teal-dark), var(--orange));
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 44px 28px 80px;
+    }
+
+    .eyebrow {
+      color: var(--teal-dark);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: 42px;
+      line-height: 1.16;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 52px 0 16px;
+      font-size: 28px;
+      line-height: 1.24;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 26px 0 10px;
+      font-size: 20px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    strong { color: var(--ink); }
+
+    code {
+      font-family: var(--mono);
+      background: rgba(15, 118, 110, .08);
+      border: 1px solid rgba(15, 118, 110, .16);
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-size: .92em;
+      color: var(--teal-dark);
+    }
+
+    pre {
+      margin: 16px 0;
+      overflow: auto;
+      background: #20242a;
+      color: #f8fafc;
+      border-radius: 8px;
+      padding: 18px 20px;
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    pre code {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 22px;
+      align-items: stretch;
+      margin-top: 28px;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, .06);
+    }
+
+    .claim {
+      background: linear-gradient(135deg, var(--teal-soft), #fffdf8);
+      border-color: #b8dfda;
+    }
+
+    .claim p {
+      color: var(--ink);
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .mini-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .mini {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .dot {
+      flex: 0 0 8px;
+      height: 8px;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: var(--teal);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 24px 0 10px;
+      align-items: stretch;
+    }
+
+    .flow-node {
+      min-height: 88px;
+      border-radius: 8px;
+      padding: 14px 12px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 1px solid;
+    }
+
+    .flow-node .name {
+      display: block;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .flow-node .role {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .flow-node.source { background: var(--soft); border-color: var(--line); }
+    .flow-node.paimon { background: var(--orange-soft); border-color: #f4d2a2; }
+    .flow-node.spark { background: var(--teal-soft); border-color: #b8dfda; }
+    .flow-node.iceberg { background: var(--blue-soft); border-color: #bfd2ff; }
+    .flow-node.serving { background: var(--purple-soft); border-color: #ddccff; }
+
+    .section-note {
+      border-left: 5px solid var(--teal);
+      background: var(--teal-soft);
+      padding: 16px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+
+    .section-note p {
+      color: var(--ink);
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 18px 0 8px;
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: var(--ink);
+    }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--teal-dark);
+      background: var(--teal-soft);
+      border: 1px solid #b8dfda;
+    }
+
+    .tag.orange {
+      color: var(--orange-dark);
+      background: var(--orange-soft);
+      border-color: #f4d2a2;
+    }
+
+    .tag.blue {
+      color: var(--blue);
+      background: var(--blue-soft);
+      border-color: #bfd2ff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 15px;
+    }
+
+    th, td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #eef3f6;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    td:first-child {
+      font-family: var(--mono);
+      color: var(--teal-dark);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 18px 0;
+    }
+
+    .compare {
+      border-radius: 8px;
+      padding: 20px;
+      border: 1px solid;
+      background: var(--paper);
+    }
+
+    .compare.orange { background: var(--orange-soft); border-color: #f4d2a2; }
+    .compare.teal { background: var(--teal-soft); border-color: #b8dfda; }
+
+    .compare h3 { margin-top: 0; }
+
+    ul {
+      margin: 10px 0 0 20px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    li { margin: 6px 0; }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .metric {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .metric .value {
+      display: block;
+      font-family: var(--mono);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--teal-dark);
+    }
+
+    .metric .label {
+      display: block;
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .checklist {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+      align-items: start;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+
+    .num {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--teal);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .footer {
+      margin-top: 64px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 860px) {
+      main { padding: 32px 18px 60px; }
+      h1 { font-size: 32px; }
+      .hero, .cards, .two-col, .metric-grid { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar"></div>
+  <main>
+    <div class="eyebrow">DE5 Session 05 · Spark to Iceberg Batch BI</div>
+    <h1>마트 테이블 설계 가이드</h1>
+    <p>
+      이 문서는 오늘 만든 Iceberg Analytics Mart가 왜 7개 테이블로 나뉘었는지,
+      각 테이블이 어떤 질문에 답하는지, 그리고 BI가 이 테이블을 어떻게 사용하는지 설명합니다.
+    </p>
+
+    <section class="hero">
+      <div class="panel claim">
+        <h2 style="margin-top:0">핵심 문장</h2>
+        <p>
+          마트 설계는 테이블을 많이 만드는 일이 아니라,
+          어떤 질문에 빠르게 답할 수 있도록 기준 데이터를 어떤 grain으로 남길지 정하는 일입니다.
+        </p>
+        <div class="mini-list">
+          <div class="mini"><span class="dot"></span><span>UX 행동 로그는 <strong>event-level fact</strong>로 남깁니다.</span></div>
+          <div class="mini"><span class="dot"></span><span>리뷰와 주문은 <strong>current-state entity</strong>로 정리합니다.</span></div>
+          <div class="mini"><span class="dot"></span><span>일별/카테고리별/퍼널별로 자주 볼 질문은 <strong>aggregate mart</strong>로 미리 만듭니다.</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2 style="margin-top:0">오늘의 설계 한눈에 보기</h2>
+        <p>
+          Paimon은 수집 결과와 현재 상태를 저장하고, Spark는 이를 읽어 Iceberg에 분석용 mart를 만듭니다.
+          StarRocks는 Iceberg external catalog로 이 mart를 조회하고, Streamlit은 그 결과를 화면으로 보여줍니다.
+        </p>
+        <pre><code>Paimon Bronze/current
+  -> Spark batch transform
+  -> Iceberg analytics mart
+  -> StarRocks external catalog
+  -> Streamlit Daily Business BI</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>1. 전체 흐름</h2>
+      <div class="flow" aria-label="Mart design flow">
+        <div class="flow-node source">
+          <span class="name">Paimon</span>
+          <span class="role">Bronze/current<br>수집 결과</span>
+        </div>
+        <div class="flow-node spark">
+          <span class="name">Spark</span>
+          <span class="role">batch transform<br>정제/집계</span>
+        </div>
+        <div class="flow-node iceberg">
+          <span class="name">Iceberg</span>
+          <span class="role">analytics mart<br>기준 결과</span>
+        </div>
+        <div class="flow-node serving">
+          <span class="name">StarRocks</span>
+          <span class="role">external catalog<br>OLAP 조회</span>
+        </div>
+        <div class="flow-node serving">
+          <span class="name">Streamlit BI</span>
+          <span class="role">지표/차트<br>해석 화면</span>
+        </div>
+      </div>
+      <div class="section-note">
+        <p>
+          StarRocks는 저장소가 아니라 OLAP 조회 계층입니다. 데이터는 Paimon과 Iceberg에 있고,
+          StarRocks는 external catalog로 그 테이블을 읽습니다.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. 입력 데이터: Paimon 3개 테이블</h2>
+      <p>
+        Spark가 읽는 입력은 Paimon에 저장된 3개 테이블입니다. 여기서 이미 append와 upsert 모델이 나뉩니다.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Paimon table</th>
+            <th>성격</th>
+            <th>의미</th>
+            <th>왜 이렇게 저장하나</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ux_events_bronze</td>
+            <td>append fact</td>
+            <td>사용자가 한 행동 로그</td>
+            <td>같은 사용자가 같은 상품을 두 번 보면 두 번의 행동이므로 두 row가 맞습니다.</td>
+          </tr>
+          <tr>
+            <td>review_current</td>
+            <td>upsert current-state</td>
+            <td>리뷰의 최신 상태</td>
+            <td>같은 review_id에 대해 매칭/감성/사용 여부가 나중에 바뀔 수 있어 최신 상태가 중요합니다.</td>
+          </tr>
+          <tr>
+            <td>order_current</td>
+            <td>upsert current-state</td>
+            <td>주문의 최신 상태</td>
+            <td>주문은 created, approved, delivered 같은 상태 변경을 거치므로 order_id 기준 최신 상태가 필요합니다.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="two-col">
+        <div class="compare orange">
+          <h3>append fact: 발생 사실을 계속 쌓는다</h3>
+          <ul>
+            <li>질문: 사용자가 무엇을 했는가?</li>
+            <li>예: 상품 조회, 리뷰 노출, 장바구니, 구매 행동</li>
+            <li>같은 행동이 반복되면 row도 반복됩니다.</li>
+          </ul>
+        </div>
+        <div class="compare teal">
+          <h3>current-state entity: 최신 상태를 유지한다</h3>
+          <ul>
+            <li>질문: 지금 이 리뷰/주문은 어떤 상태인가?</li>
+            <li>예: 리뷰 감성, 리뷰 사용 여부, 주문 상태</li>
+            <li>같은 key의 변경 이벤트는 한 row로 접힙니다.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2-1. L0/L1/L2 계층 점검</h2>
+      <p>
+        이번 프로젝트는 "raw를 그대로 쌓고 끝"이 아니라, 같은 데이터를 목적별 계층으로 나눠 읽습니다.
+        수업에서는 아래처럼 <strong>L0 수집 계층</strong>, <strong>L1 기준 계층</strong>,
+        <strong>L2 집계/서빙 계층</strong>으로 설명하면 됩니다.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>계층</th>
+            <th>테이블</th>
+            <th>grain</th>
+            <th>저장 모델</th>
+            <th>검증 포인트</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="3"><strong>L0</strong><br />Paimon Bronze/current</td>
+            <td>ux_events_bronze</td>
+            <td>event_id</td>
+            <td>append fact, raw_json 보관, bucket=3</td>
+            <td>Kafka ux-events 16,693건과 row count가 맞는가?</td>
+          </tr>
+          <tr>
+            <td>review_current</td>
+            <td>review_id</td>
+            <td>primary key upsert, 무파티션, bucket=3</td>
+            <td>review-events 5,943건이 review_id 기준 1,971건으로 접히는가?</td>
+          </tr>
+          <tr>
+            <td>order_current</td>
+            <td>order_id</td>
+            <td>primary key upsert, 무파티션, bucket=3</td>
+            <td>order-status-events 7,886건이 order_id 기준 2,000건으로 접히는가?</td>
+          </tr>
+          <tr>
+            <td rowspan="3"><strong>L1</strong><br />Iceberg base mart</td>
+            <td>olist_ux_events_clean</td>
+            <td>event_id</td>
+            <td>정제 fact, partition=event_date</td>
+            <td>timestamp/date/category/brand/price 보정 후에도 16,693건인가?</td>
+          </tr>
+          <tr>
+            <td>olist_review_current</td>
+            <td>review_id</td>
+            <td>current-state 기준 테이블, 무파티션</td>
+            <td>category_code는 필터 속성일 뿐 파티션 기준으로 쓰지 않는다.</td>
+          </tr>
+          <tr>
+            <td>olist_order_current</td>
+            <td>order_id</td>
+            <td>current-state 기준 테이블, 무파티션</td>
+            <td>주문 엔티티 최신 상태 2,000건이 유지되는가?</td>
+          </tr>
+          <tr>
+            <td rowspan="4"><strong>L2</strong><br />Iceberg aggregate/query mart</td>
+            <td>olist_event_type_daily</td>
+            <td>event_date + event_type</td>
+            <td>일별 이벤트 타입 집계, partition=event_date</td>
+            <td>날짜별 유입/행동량을 빠르게 볼 수 있는가?</td>
+          </tr>
+          <tr>
+            <td>olist_funnel_daily</td>
+            <td>event_date</td>
+            <td>일별 funnel 집계, partition=event_date</td>
+            <td>상품 조회, 리뷰 노출, 장바구니, 구매 흐름을 설명할 수 있는가?</td>
+          </tr>
+          <tr>
+            <td>olist_category_daily</td>
+            <td>event_date + category_code</td>
+            <td>카테고리별 행동/매출 집계, partition=event_date</td>
+            <td>자주 보는 category 필터는 current 테이블이 아니라 집계 mart에서 처리한다.</td>
+          </tr>
+          <tr>
+            <td>olist_review_sentiment_by_category</td>
+            <td>category_code + sentiment</td>
+            <td>카테고리별 리뷰 감성 집계</td>
+            <td>부정 리뷰가 몰린 카테고리를 빠르게 찾을 수 있는가?</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="section-note">
+        <p>
+          실무적으로는 review/order의 변경 이력도 <code>review_events_bronze</code>,
+          <code>order_status_events_bronze</code> 같은 append L0 테이블로 보존하는 것이 더 안전합니다.
+          현재 MVP는 streaming upsert와 current-state 해석을 먼저 보여주기 위해 current 테이블부터 만들었습니다.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. 출력 데이터: Iceberg Analytics Mart 7개</h2>
+      <p>
+        Spark는 Paimon 3개 테이블을 읽고 Iceberg <code>analytics</code> namespace에 7개 mart를 만듭니다.
+        설계는 크게 <strong>기준 테이블 3개</strong>와 <strong>집계 테이블 4개</strong>로 나뉩니다.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <span class="tag blue">base mart</span>
+          <h3>기준 테이블</h3>
+          <p>BI 지표가 이상할 때 다시 돌아가서 검증할 수 있는 정제 기준 데이터입니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag orange">aggregate mart</span>
+          <h3>집계 테이블</h3>
+          <p>일별, 카테고리별, 퍼널별로 자주 보는 질문에 빠르게 답하기 위한 요약 결과입니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag">query layer</span>
+          <h3>BI 계산</h3>
+          <p>리뷰 영향처럼 조합이 필요한 지표는 StarRocks/Spark 쿼리 계층에서 추가 계산합니다.</p>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Iceberg mart</th>
+            <th>grain</th>
+            <th>목적</th>
+            <th>대표 질문</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>olist_ux_events_clean</td>
+            <td>이벤트 1건 = 1 row</td>
+            <td>UXLog 정제 fact table</td>
+            <td>전체 이벤트 수, 사용자 수, 세션 수, 구매 행동 금액은?</td>
+          </tr>
+          <tr>
+            <td>olist_review_current</td>
+            <td>리뷰 1개 = 1 row</td>
+            <td>리뷰 최신 상태 기준 테이블</td>
+            <td>현재 리뷰 수, 평균 평점, 부정 리뷰 수는?</td>
+          </tr>
+          <tr>
+            <td>olist_order_current</td>
+            <td>주문 1개 = 1 row</td>
+            <td>주문 최신 상태 기준 테이블</td>
+            <td>현재 주문 엔티티 수와 주문 상태 분포는?</td>
+          </tr>
+          <tr>
+            <td>olist_event_type_daily</td>
+            <td>날짜 + 이벤트 타입</td>
+            <td>일별 이벤트 타입 집계</td>
+            <td>날짜별로 어떤 이벤트가 얼마나 발생했나?</td>
+          </tr>
+          <tr>
+            <td>olist_funnel_daily</td>
+            <td>날짜</td>
+            <td>일별 퍼널 집계</td>
+            <td>상품 조회, 리뷰 노출, 장바구니, 구매 세션이 어떻게 이어졌나?</td>
+          </tr>
+          <tr>
+            <td>olist_category_daily</td>
+            <td>날짜 + 카테고리</td>
+            <td>카테고리별 행동/매출 집계</td>
+            <td>어떤 카테고리에서 조회, 구매, 매출이 높았나?</td>
+          </tr>
+          <tr>
+            <td>olist_review_sentiment_by_category</td>
+            <td>카테고리 + 감성</td>
+            <td>카테고리별 리뷰 감성 집계</td>
+            <td>어떤 카테고리에 부정 리뷰가 많이 몰렸나?</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>4. 각 테이블을 왜 이렇게 만들었나</h2>
+
+      <h3>4-1. <code>olist_ux_events_clean</code>: 행동 로그의 기준 fact</h3>
+      <p>
+        Paimon의 <code>ux_events_bronze</code>를 분석 가능한 형태로 정리한 테이블입니다.
+        timestamp와 date를 만들고, category/brand/price의 비어 있는 값을 보정합니다.
+      </p>
+      <pre><code>grain: event_id
+partition: event_date
+primary question: 사용자가 언제, 어떤 상품에, 어떤 행동을 했는가?</code></pre>
+
+      <h3>4-2. <code>olist_review_current</code>: 리뷰 최신 상태 기준</h3>
+      <p>
+        Paimon의 <code>review_current</code>를 Iceberg 기준 테이블로 옮깁니다.
+        리뷰 감성, 평점, 사용 여부, 매칭 상품 정보를 함께 둡니다.
+      </p>
+      <pre><code>grain: review_id
+partition: 없음
+primary question: 지금 기준으로 상품/카테고리에 어떤 리뷰 상태가 존재하는가?</code></pre>
+      <p>
+        <code>category_code</code>는 리뷰를 해석하고 필터링할 때 중요한 속성이지만,
+        리뷰 엔티티의 최신 상태 테이블을 물리적으로 나누는 기준으로는 쓰지 않습니다.
+        카테고리 기준으로 자주 보는 질문은 <code>olist_category_daily</code>,
+        <code>olist_review_sentiment_by_category</code>, 또는 StarRocks/Spark query layer에서 처리합니다.
+      </p>
+
+      <h3>4-3. <code>olist_order_current</code>: 주문 최신 상태 기준</h3>
+      <p>
+        주문 상태 이벤트는 여러 번 발생할 수 있지만, 분석 기준으로는 주문의 최신 상태가 필요합니다.
+        그래서 <code>order_id</code> 기준 현재 상태를 mart로 남깁니다.
+      </p>
+      <pre><code>grain: order_id
+primary question: 지금 기준으로 주문 엔티티는 어떤 상태인가?</code></pre>
+
+      <h3>4-4. 집계 mart 4개: BI에서 자주 보는 질문을 미리 계산</h3>
+      <p>
+        매번 event-level fact를 처음부터 group by 해도 되지만, 수업에서는 BI 해석을 명확히 보여주기 위해
+        일별/카테고리별/퍼널별 대표 집계를 Iceberg mart로 남겼습니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>5. 기대 row count</h2>
+      <p>
+        수업 샘플 기준입니다. 이 숫자는 "실행이 됐다"가 아니라 "어떤 grain으로 저장됐는지"를 확인하는 증거입니다.
+      </p>
+      <div class="metric-grid">
+        <div class="metric"><span class="value">16,693</span><span class="label">olist_ux_events_clean</span></div>
+        <div class="metric"><span class="value">1,971</span><span class="label">olist_review_current</span></div>
+        <div class="metric"><span class="value">2,000</span><span class="label">olist_order_current</span></div>
+        <div class="metric"><span class="value">7</span><span class="label">Iceberg mart tables</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Table</th>
+            <th>Expected rows</th>
+            <th>해석</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>olist_ux_events_clean</td><td>16,693</td><td>UX 행동 로그는 append fact라 이벤트 수와 row 수가 같습니다.</td></tr>
+          <tr><td>olist_review_current</td><td>1,971</td><td>Kafka review event는 5,943건이지만 review_id 기준 최신 상태로 접힙니다.</td></tr>
+          <tr><td>olist_order_current</td><td>2,000</td><td>Kafka order status event는 7,886건이지만 order_id 기준 최신 상태로 접힙니다.</td></tr>
+          <tr><td>olist_event_type_daily</td><td>256</td><td>날짜와 이벤트 타입 조합의 집계 row입니다.</td></tr>
+          <tr><td>olist_funnel_daily</td><td>52</td><td>날짜별 funnel 집계 row입니다.</td></tr>
+          <tr><td>olist_category_daily</td><td>759</td><td>날짜와 카테고리 조합의 집계 row입니다.</td></tr>
+          <tr><td>olist_review_sentiment_by_category</td><td>120</td><td>카테고리와 감성 조합의 집계 row입니다.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>6. 숫자가 다르면 바로 유실인가?</h2>
+      <div class="section-note">
+        <p>
+          아닙니다. 먼저 테이블의 grain과 저장 모델을 확인해야 합니다.
+        </p>
+      </div>
+      <p>
+        예를 들어 <code>review-events</code>는 Kafka에 5,943건이 들어가지만,
+        <code>review_current</code>는 1,971건입니다. 이것은 유실이 아니라,
+        같은 <code>review_id</code>의 상태 변경 이벤트가 current-state 테이블에서 최신 상태 한 줄로 접힌 결과입니다.
+      </p>
+      <pre><code>Kafka review-events        5,943 events
+Paimon review_current      1,971 rows
+Iceberg olist_review_current 1,971 rows
+
+의미: 이벤트 수와 엔티티 수는 다를 수 있다.</code></pre>
+
+      <p>
+        또 하나의 예시는 <code>orders</code>와 <code>order_current_rows</code>입니다.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>지표</th>
+            <th>값</th>
+            <th>의미</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>BI orders</td>
+            <td>1,968</td>
+            <td>UX 이벤트에서 purchase/order-linked 기준으로 집계한 주문 수입니다.</td>
+          </tr>
+          <tr>
+            <td>order_current_rows</td>
+            <td>2,000</td>
+            <td>주문 엔티티 current-state 테이블의 row count입니다.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        두 값이 다른 이유는 파이프라인 실패가 아니라 <strong>지표 정의가 다르기 때문</strong>입니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>7. BI는 이 mart를 어떻게 쓰나</h2>
+      <p>
+        Streamlit BI는 직접 파일을 읽지 않습니다. StarRocks가 Iceberg external catalog로 mart를 조회하고,
+        Streamlit은 그 결과를 받아 차트로 보여줍니다.
+      </p>
+      <pre><code>Streamlit Daily Business BI
+  -> query-bi-metrics.sh
+  -> StarRocks Iceberg external catalog
+  -> Iceberg analytics mart
+  -> BI_METRICS_JSON</code></pre>
+
+      <div class="checklist">
+        <div class="check">
+          <div class="num">1</div>
+          <div>
+            <strong>상단 KPI</strong>
+            <p>전체 이벤트, 사용자, 세션, purchase 행동 금액을 봅니다.</p>
+          </div>
+        </div>
+        <div class="check">
+          <div class="num">2</div>
+          <div>
+            <strong>Daily Revenue and Conversion Trend</strong>
+            <p>일자별 매출과 전환 흐름을 봅니다. Iceberg mart는 회고와 재처리에 유리합니다.</p>
+          </div>
+        </div>
+        <div class="check">
+          <div class="num">3</div>
+          <div>
+            <strong>Batch Funnel Sessions</strong>
+            <p>상품 조회, 리뷰 노출, 리뷰 확장, 장바구니, 구매 세션을 funnel로 봅니다.</p>
+          </div>
+        </div>
+        <div class="check">
+          <div class="num">4</div>
+          <div>
+            <strong>Trusted Review Impact</strong>
+            <p>리뷰를 본 사용자가 장바구니/구매로 이어졌는지 batch 기준으로 다시 계산합니다.</p>
+          </div>
+        </div>
+        <div class="check">
+          <div class="num">5</div>
+          <div>
+            <strong>Category Business Health</strong>
+            <p>매출, 리뷰 커버리지, 부정 리뷰 비율, 이탈률을 함께 보며 점검 후보를 찾습니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>8. 수업에서 가져갈 설계 원칙</h2>
+      <div class="cards">
+        <div class="card">
+          <span class="tag">grain</span>
+          <h3>먼저 row의 의미를 정한다</h3>
+          <p>이 row가 이벤트 1건인지, 리뷰 1개인지, 날짜+카테고리 집계인지 먼저 정해야 합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag orange">model</span>
+          <h3>append와 upsert를 구분한다</h3>
+          <p>발생 사실은 append, 최신 상태가 중요한 엔티티는 upsert/current-state로 봅니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag blue">proof</span>
+          <h3>숫자는 정의와 함께 본다</h3>
+          <p>count가 다르면 유실이라고 단정하지 말고, 입력 이벤트 수와 출력 grain을 비교합니다.</p>
+        </div>
+      </div>
+
+      <h3>발표에서 쓰기 좋은 문장</h3>
+      <pre><code>이 프로젝트는 UXLog를 event-level fact로 정리하고,
+리뷰/주문은 current-state entity로 유지한 뒤,
+Spark batch로 Iceberg Analytics Mart를 만들어
+리뷰 노출 이후의 전환과 부정 리뷰 기반 이탈 리스크를 분석합니다.</code></pre>
+    </section>
+
+    <section>
+      <h2>9. 실무 보강 로드맵</h2>
+      <p>
+        오늘의 목표는 MVP를 end-to-end로 완성하는 것입니다. 다만 실무형 포트폴리오라면
+        "현재 구현의 한계와 다음 개선 순서"까지 설명할 수 있어야 합니다.
+        아래 항목은 오늘 반드시 구현해야 하는 내용이 아니라, 6차시 운영 검증과 이후 고도화에서 다룰 로드맵입니다.
+      </p>
+      <div class="section-note">
+        <p>
+          좋은 설계 문서는 완벽한 척하지 않습니다. 현재 상태, 알려진 갭, 실무 패턴, 적용 우선순위를 함께 남깁니다.
+        </p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>보강 지점</th>
+            <th>현재 구현</th>
+            <th>실무 패턴</th>
+            <th>적용 시점</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>검증 전 퍼블리시</td>
+            <td><code>DROP TABLE -> CREATE TABLE AS SELECT -> validate</code> 순서라, 잘못된 결과가 먼저 노출될 수 있습니다.</td>
+            <td>Write-Audit-Publish. staging/branch에 먼저 쓰고 검증 통과 후 publish합니다. 차선책은 <code>INSERT OVERWRITE</code>로 빈 테이블 구간을 줄입니다.</td>
+            <td>6차시 전후 운영 검증 실습</td>
+          </tr>
+          <tr>
+            <td>review/order 이벤트 이력</td>
+            <td>UX는 append bronze가 있지만 review/order는 바로 current-state로 접힙니다.</td>
+            <td><code>review_events_bronze</code>, <code>order_status_events_bronze</code>를 append로 저장하고, current table은 그 이력에서 파생합니다.</td>
+            <td>기수 이후 고도화 또는 심화 과제</td>
+          </tr>
+          <tr>
+            <td>current table 파티션</td>
+            <td><code>olist_review_current</code>는 무파티션 current-state 기준 테이블입니다.</td>
+            <td>카테고리 조회는 current table 파티션이 아니라 집계 mart나 query layer에서 처리합니다. 데이터가 커지면 id 기반 bucketing을 검토합니다.</td>
+            <td>반영 완료</td>
+          </tr>
+          <tr>
+            <td>상수 count 검증</td>
+            <td>샘플 기준 <code>16,693</code>, <code>1,971</code>, <code>2,000</code> 같은 고정 기대값을 검증합니다.</td>
+            <td>관계 불변식을 함께 검증합니다. 예: <code>rows(ux_clean) = rows(ux_bronze)</code>, <code>distinct review_id = rows(review_current)</code>.</td>
+            <td>6차시 운영 검증에서 추가하기 좋음</td>
+          </tr>
+          <tr>
+            <td>증분/백필</td>
+            <td>매 run 전체 mart를 재생성합니다.</td>
+            <td>날짜 파라미터와 rolling window overwrite로 최근 N일을 재계산하고, late event를 흡수합니다.</td>
+            <td>프로덕션 고도화 로드맵</td>
+          </tr>
+          <tr>
+            <td>리뷰 감성 시간 축</td>
+            <td><code>review_sentiment_by_category</code>는 전 기간 current-state 기준 누적 집계입니다.</td>
+            <td><code>as_of_date</code> 또는 snapshot 기준을 추가해 시간에 따른 변화와 소급 변경을 추적합니다.</td>
+            <td>BI 고도화</td>
+          </tr>
+          <tr>
+            <td>시간대와 funnel 귀속 규칙</td>
+            <td><code>event_date</code>는 Spark session timezone인 UTC 기준입니다. funnel 단계 귀속 규칙은 코드에만 존재합니다.</td>
+            <td>비즈니스 시간대와 funnel 단계 인정 조건을 문서화합니다. 예: America/Sao_Paulo 기준 일자, 이벤트 순서/단계 건너뜀 처리.</td>
+            <td>문서에는 즉시 명시, 지표 정의서로 확장</td>
+          </tr>
+          <tr>
+            <td>StarRocks metadata refresh</td>
+            <td>Iceberg table을 drop/recreate하면 external catalog 메타데이터 캐시가 stale해질 수 있습니다.</td>
+            <td>build 후 <code>REFRESH EXTERNAL TABLE</code> 또는 catalog refresh task를 둡니다. WAP/overwrite 구조로 바꾸면 리스크가 줄어듭니다.</td>
+            <td>6차시 장애/운영 검증 소재</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>수업에서 말할 프레이밍</h3>
+      <pre><code>오늘은 MVP를 완성합니다.
+다만 실무형 포트폴리오는 여기서 끝났다고 말하지 않습니다.
+현재 구현의 한계와 운영 보강 로드맵까지 설명할 수 있어야 설득력이 생깁니다.</code></pre>
+    </section>
+
+    <section>
+      <h2>10. 직접 확인할 명령어</h2>
+      <p>수업 중에는 아래 명령으로 mart 생성과 BI 지표를 확인합니다.</p>
+      <pre><code>./scripts/run-spark-iceberg-transform.sh
+./scripts/query-bi-metrics.sh</code></pre>
+      <p>
+        Airflow로 검증할 때는 아래 DAG가 같은 흐름을 task 단위로 실행하고 검증합니다.
+      </p>
+      <pre><code>./scripts/trigger-airflow-pipeline.sh</code></pre>
+    </section>
+
+    <div class="footer">
+      기준 코드: <code>labs/05-spark-iceberg/transform_to_iceberg.py</code> ·
+      BI 조회: <code>scripts/query-bi-metrics.sh</code> ·
+      문서 생성일: 2026-06-12
+    </div>
+  </main>
+</body>
+</html>
