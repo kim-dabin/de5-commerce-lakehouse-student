@@ -196,12 +196,18 @@ services:
         taskmanager.numberOfTaskSlots: 4
         state.backend.type: hashmap
         state.checkpoints.dir: file:///opt/flink/checkpoints
+        state.savepoints.dir: file:///opt/flink/savepoints
         execution.checkpointing.interval: 30s
+        execution.checkpointing.externalized-checkpoint-retention: RETAIN_ON_CANCELLATION
+        restart-strategy.type: fixed-delay
+        restart-strategy.fixed-delay.attempts: 3
+        restart-strategy.fixed-delay.delay: 10s
       JVM_ARGS: "-Xms512m -Xmx1024m"
     volumes:
       - ./labs:/workspace/labs
       - ./data:/workspace/data
       - flink-checkpoints:/opt/flink/checkpoints
+      - flink-savepoints:/opt/flink/savepoints
     networks:
       - lakehouse
 
@@ -220,12 +226,18 @@ services:
         taskmanager.memory.process.size: 1536m
         state.backend.type: hashmap
         state.checkpoints.dir: file:///opt/flink/checkpoints
+        state.savepoints.dir: file:///opt/flink/savepoints
         execution.checkpointing.interval: 30s
+        execution.checkpointing.externalized-checkpoint-retention: RETAIN_ON_CANCELLATION
+        restart-strategy.type: fixed-delay
+        restart-strategy.fixed-delay.attempts: 3
+        restart-strategy.fixed-delay.delay: 10s
       JVM_ARGS: "-Xms512m -Xmx1024m"
     volumes:
       - ./labs:/workspace/labs
       - ./data:/workspace/data
       - flink-checkpoints:/opt/flink/checkpoints
+      - flink-savepoints:/opt/flink/savepoints
     networks:
       - lakehouse
 
@@ -593,6 +605,7 @@ volumes:
   iceberg-postgres-data:
   iceberg-rest-data:
   flink-checkpoints:
+  flink-savepoints:
   spark-ivy-cache:
   starrocks-fe-meta:
   starrocks-fe-caches:

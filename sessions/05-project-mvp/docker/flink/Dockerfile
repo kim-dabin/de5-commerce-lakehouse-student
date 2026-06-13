@@ -19,7 +19,7 @@ RUN set -eux; \
       "https://repo.maven.apache.org/maven2/org/apache/iceberg/iceberg-flink-runtime-1.20/${ICEBERG_FLINK_RUNTIME_VERSION}/iceberg-flink-runtime-1.20-${ICEBERG_FLINK_RUNTIME_VERSION}.jar"; \
     wget -nv -P /opt/flink/lib \
       "https://repo.maven.apache.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/${FLINK_SHADED_HADOOP_VERSION}/flink-shaded-hadoop-2-uber-${FLINK_SHADED_HADOOP_VERSION}.jar"; \
-    mkdir -p /workspace /opt/flink/checkpoints
+    mkdir -p /workspace /opt/flink/checkpoints /opt/flink/savepoints
 
 COPY docker/flink/entrypoint.sh /usr/local/bin/de5-flink-entrypoint.sh
 

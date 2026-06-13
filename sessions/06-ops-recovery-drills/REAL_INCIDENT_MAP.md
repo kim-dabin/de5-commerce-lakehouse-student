@@ -1,0 +1,128 @@
+# 6차시 실무 인시던트 맵
+
+이 문서는 6차시 드릴을 실제 운영 사례와 연결하기 위한 멘토/학생 공용 참고 자료입니다. 회사 내부 서비스명과 테이블명은 공개 문서에 맞게 익명화했습니다.
+
+## 한 줄 요약
+
+운영 장애 대응의 핵심은 "실패한 도구 이름"을 맞히는 것이 아니라, Kafka/Flink/Paimon/Iceberg/StarRocks 중 어느 계층까지 정상인지 증거로 자르는 것입니다.
+
+## R1. Flink 리소스/TaskManager 장애
+
+실제 형태:
+
+- Flink 컨테이너가 노드 디스크/리소스 문제로 evict됨.
+- Kafka lag가 크게 튀었다가 노드 복구 후 줄어듦.
+- Flink job 상태만 보면 원인을 놓칠 수 있었고, 노드/컨테이너/로그/lag를 같이 봐야 했음.
+
+수업 축소판:
+
+- `flink-taskmanager`를 중지한다.
+- Flink UI, `flink list -r`, Paimon count를 같이 본다.
+- 복구 후 RUNNING만 보지 말고 count까지 다시 확인한다.
+
+핵심 문장:
+
+> Flink 장애가 항상 Flink 코드 문제는 아닙니다. 컨테이너가 뜨는 노드, 디스크, 리소스 상태가 원인일 수 있습니다.
+
+## R2. checkpoint/last-state가 복구를 막은 경우
+
+실제 형태:
+
+- Flink job이 checkpoint/last-state로 복구하려 했지만, 그 state가 더 이상 유효하지 않은 metadata pointer를 참조함.
+- 대표 증상은 Iceberg-compatible metadata JSON 파일을 읽으려 했는데 실제 파일이 사라진 상태.
+- 로그 형태는 `Failed to read Iceberg metadata from path ... vNNNNN.metadata.json` 또는 `FileNotFoundException`.
+- 같은 checkpoint/last-state로 계속 올리면 같은 실패를 반복하므로, stateless 재기동과 원천 재처리/검증/cutover가 필요했음.
+
+수업 축소판:
+
+- savepoint로 멈춘 뒤 같은 savepoint에서 복구한다.
+- 이어받기 자체는 좋은 패턴이지만, "이어받을 state가 신뢰 가능한가?"라는 판단이 별도로 필요하다는 점을 설명한다.
+
+핵심 문장:
+
+> checkpoint는 복구 도구이지만, 깨진 metadata pointer나 잘못된 offset/state를 들고 있으면 실패를 반복시키는 원인이 됩니다.
+
+## R3. Kafka topic 설정 오류
+
+실제 형태:
+
+- 운영 설정에서 retention 값과 ISR 설정처럼 필드 의미가 다른 값을 잘못 넣으면 producer가 실패할 수 있음.
+- 특히 `acks=all` producer는 in-sync replica 기준을 만족해야 ack를 받는다.
+
+수업 축소판:
+
+- 단일 broker topic에 `min.insync.replicas=2`를 넣는다.
+- producer가 실패하는 것을 확인하고, topic config를 복구한다.
+
+핵심 문장:
+
+> producer 장애처럼 보여도 실제 원인은 topic 설정일 수 있습니다.
+
+## R4. schema/payload 오류
+
+실제 형태:
+
+- schemaless source에서 특정 batch부터 필드가 없거나 타입이 달라짐.
+- parsed column만 보고는 원인을 찾기 어려웠고, raw payload를 남긴 것이 복구 단서가 됨.
+- MongoDB 같은 소스에서는 batch 1과 batch 50의 schema가 다를 수 있음.
+
+수업 축소판:
+
+- `price`가 숫자가 아닌 UX event를 Kafka에 주입한다.
+- Flink log와 Paimon count를 보며 "Kafka에 들어갔다"와 "Paimon에 정상 적재됐다"가 다름을 확인한다.
+
+핵심 문장:
+
+> raw_json은 낭비가 아니라 장애 분석용 증거입니다.
+
+## R5. mart/table dependency 누락
+
+실제 형태:
+
+- source와 bronze는 정상인데, downstream mart나 view가 빠져 BI만 실패할 수 있음.
+- Airflow task 이름이 "어디서 깨졌는지"를 알려주는 진단 단서가 됨.
+
+수업 축소판:
+
+- Iceberg mart 하나를 drop한다.
+- Airflow DAG를 다시 돌려 mart를 재생성하고, query/validate task 로그로 복구를 확인한다.
+
+핵심 문장:
+
+> source가 정상이라는 말은 BI가 정상이라는 뜻이 아닙니다.
+
+## R6. StarRocks external metadata/cache stale
+
+실제 형태:
+
+- native Paimon count는 맞는데 StarRocks/Iceberg-compatible view 쪽이 최신 상태를 못 보는 문제가 있었음.
+- 이 경우 primary data failure가 아니라 reflection/cache/metadata refresh 문제로 분리해야 함.
+
+수업 축소판:
+
+- Iceberg mart를 재생성한 뒤 StarRocks external metadata refresh를 실행한다.
+- 데이터 파일/REST catalog/StarRocks cache가 서로 다른 계층이라는 점을 설명한다.
+
+핵심 문장:
+
+> 조회 계층이 stale하다고 해서 곧바로 원천 데이터 유실이라고 판단하면 안 됩니다.
+
+## Blind drill 후보. Kafka lag가 거짓말하는 경우
+
+실제 형태:
+
+- consumer group lag가 크거나 `no active members`처럼 보여도 실제 Flink job은 정상 처리 중일 수 있음.
+- 이유는 Flink Kafka Source가 offset을 Kafka consumer group에 commit하지 않고 checkpoint에 저장하는 구조일 수 있기 때문.
+
+수업에서 던질 질문:
+
+```text
+Kafka UI에서 consumer group이 비어 있거나 lag가 이상해 보이면, Flink가 죽었다고 말할 수 있을까요?
+```
+
+기대 답:
+
+```text
+아니요. Flink job 상태, checkpoint, source/sink records, Paimon count를 같이 봐야 합니다.
+```
+
