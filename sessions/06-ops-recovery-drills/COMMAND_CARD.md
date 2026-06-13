@@ -142,7 +142,7 @@ docker compose -f docker-compose.lite.yml logs --tail=120 flink-taskmanager
 Kafka에 이미 들어간 잘못된 메시지는 수정되지 않습니다. 원천을 다시 만들거나, 처리 로직에서 격리/필터링해야 합니다.
 ```
 
-## R5. Iceberg mart 누락
+## R5. Iceberg mart empty/누락
 
 주입:
 
@@ -169,7 +169,8 @@ ID/PW: admin / admin
 포인트:
 
 ```text
-Flink/Paimon이 정상이어도 Iceberg mart가 없으면 BI는 실패합니다. 계층마다 증거가 따로 필요합니다.
+Flink/Paimon이 정상이고 DAG가 초록이어도 Iceberg mart가 비어 있으면 BI는 실패합니다.
+과거에는 이 검증이 없어 방치됐고, 현재 프로젝트는 validate_bi_metric_counts로 이 문제를 잡도록 보강했습니다.
 ```
 
 ## R6. StarRocks external metadata refresh

@@ -9,7 +9,7 @@
    - R2 checkpoint/savepoint 복구
    - R3 Kafka ISR 설정 오류
    - R4 잘못된 payload
-   - R5 Iceberg mart 누락
+   - R5 Iceberg mart empty/누락
    - R6 StarRocks metadata refresh
 2. 장애 전 정상 기준
 3. 장애 후 관찰한 증상
@@ -35,4 +35,3 @@ Flink job은 RUNNING이었지만 Paimon count가 기대값과 달랐다.
 ## 마감
 
 다음 차시 시작 3시간 전까지 Discord 6차시 스레드에 제출합니다.
-

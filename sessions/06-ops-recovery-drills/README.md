@@ -81,7 +81,7 @@ Airflow UI는 `http://localhost:8080`, 기본 계정은 `admin / admin`입니다
 | R2 checkpoint/savepoint | 기존 checkpoint/last-state가 깨진 메타데이터를 계속 참조해 stateless 재기동이 필요했던 복구 | savepoint 복원은 이어읽기, 상태 폐기는 중복/누락 위험 |
 | R3 Kafka ISR 설정 오류 | retention 값을 다른 설정에 넣거나 ISR 설정을 잘못 넣어 acks=all producer가 실패 | `min.insync.replicas=2`를 단일 broker topic에 주입 |
 | R4 payload/schema 오류 | schemaless source에서 특정 batch부터 타입/필드가 달라져 parser 또는 sink가 실패 | 잘못된 `price` 타입 이벤트를 Kafka에 주입 |
-| R5 mart 누락 | upstream은 정상인데 downstream mart/view가 빠져 BI만 실패 | Iceberg mart 하나를 drop하고 DAG로 재생성 |
+| R5 Iceberg mart empty/누락 | DAG는 성공처럼 보였지만 Iceberg mart가 비어 BI에서 장애가 드러난 사건 | Iceberg mart 하나를 drop하고 DAG 검증으로 재생성/검출 |
 | R6 metadata/cache stale | native table은 정상인데 StarRocks/Iceberg-compatible view가 최신 상태를 못 보는 문제 | StarRocks external metadata refresh |
 
 특히 R2는 중요합니다. 운영에서는 checkpoint가 항상 정답이 아닙니다. checkpoint가 이미 잘못된 metadata pointer나 잘못된 offset/state를 들고 있으면, "이어받기"가 복구가 아니라 실패 반복이 됩니다. 이때는 상태를 버리고 stateless로 다시 시작한 뒤, 원천에서 재처리하거나 staging 검증 후 cutover하는 판단이 필요합니다.

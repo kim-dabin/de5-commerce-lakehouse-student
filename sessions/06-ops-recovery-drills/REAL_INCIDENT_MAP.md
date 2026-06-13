@@ -75,21 +75,24 @@
 
 > raw_json은 낭비가 아니라 장애 분석용 증거입니다.
 
-## R5. mart/table dependency 누락
+## R5. Iceberg mart empty / dependency 누락
 
 실제 형태:
 
-- source와 bronze는 정상인데, downstream mart나 view가 빠져 BI만 실패할 수 있음.
-- Airflow task 이름이 "어디서 깨졌는지"를 알려주는 진단 단서가 됨.
+- source와 bronze는 정상이고 Airflow DAG도 이상 없이 끝난 것처럼 보였지만, Iceberg mart table에 실제 데이터가 없었음.
+- DAG가 "성공"으로 끝났기 때문에 장애가 없다고 판단하고 방치했고, 나중에 BI 지표가 비거나 깨지면서 문제가 드러남.
+- 이 사건의 핵심은 "DAG success"가 "serving-ready data"를 보장하지 않는다는 점.
+- task 성공 여부뿐 아니라 output table row count, freshness, BI metric까지 검증해야 함.
 
 수업 축소판:
 
-- Iceberg mart 하나를 drop한다.
-- Airflow DAG를 다시 돌려 mart를 재생성하고, query/validate task 로그로 복구를 확인한다.
+- Iceberg mart 하나를 drop하거나 비운 상태로 만든다.
+- Airflow DAG를 다시 돌려 mart를 재생성하고, `query_iceberg_tables`와 `validate_bi_metric_counts` 로그로 복구를 확인한다.
+- 현재 프로젝트에는 이 실무 사고를 반영해 BI metric validation task를 넣어 두었다. 즉, 과거라면 방치됐을 문제를 지금은 DAG 안에서 잡게 만든 구조다.
 
 핵심 문장:
 
-> source가 정상이라는 말은 BI가 정상이라는 뜻이 아닙니다.
+> DAG가 초록이라는 말은 BI가 정상이라는 뜻이 아닙니다. output table count와 freshness가 검증돼야 합니다.
 
 ## R6. StarRocks external metadata/cache stale
 
@@ -125,4 +128,3 @@ Kafka UI에서 consumer group이 비어 있거나 lag가 이상해 보이면, Fl
 ```text
 아니요. Flink job 상태, checkpoint, source/sink records, Paimon count를 같이 봐야 합니다.
 ```
-
