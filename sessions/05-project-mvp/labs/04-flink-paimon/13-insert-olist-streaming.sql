@@ -4,9 +4,14 @@
 -- SQL file. That made it harder to stop/savepoint/restore one ingestion path at
 -- a time. The streaming ingestion SQL is now split by job:
 --
+--   00-init-flink-session.sql
 --   13a-insert-olist-ux-events-streaming.sql
 --   13b-insert-olist-review-current-streaming.sql
 --   13c-insert-olist-order-current-streaming.sql
+--
+-- The split files still run in Flink session mode. They are separated so each
+-- ingestion path has its own pipeline.name and can later move toward
+-- savepoint-based redeploy or application mode.
 --
 -- Use the script below instead of running this file directly:
 --

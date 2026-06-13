@@ -85,13 +85,16 @@ Flink UI에서 ingestion job이 RUNNING이면 정상입니다.
 Streaming SQL은 job별로 분리되어 있습니다.
 
 ```text
-13a-insert-olist-ux-events-streaming.sql      -> ux_events_bronze
-13b-insert-olist-review-current-streaming.sql -> review_current
-13c-insert-olist-order-current-streaming.sql  -> order_current
+00-init-flink-session.sql                     -> 공통 SET / Paimon catalog
+13a-insert-olist-ux-events-streaming.sql      -> ingest-ux-events      -> ux_events_bronze
+13b-insert-olist-review-current-streaming.sql -> ingest-review-current -> review_current
+13c-insert-olist-order-current-streaming.sql  -> ingest-order-current  -> order_current
 ```
 
 이렇게 나눈 이유는 운영 관점에서 각 ingestion path를 별도의 Flink job으로 다루기 위해서입니다.
 나중에 savepoint/restore를 실습할 때도 UX job, review job, order job을 따로 멈추고 복구할 수 있습니다.
+
+중요한 점은, 현재 스크립트는 여전히 session mode로 Flink 클러스터에 job을 제출한다는 것입니다. application mode로 바뀐 것은 아닙니다. 다만 application mode의 핵심 철학인 "job 하나 = 배포 단위 하나 = 생명주기 하나"에 맞게 SQL artifact를 먼저 분리해 둔 상태입니다.
 
 저장 모델 기준으로도 나누어 실행할 수 있습니다.
 

@@ -1,5 +1,9 @@
-SET 'execution.runtime-mode' = 'streaming';
-SET 'sql-client.execution.result-mode' = 'tableau';
+-- Submitted with:
+--   sql-client.sh -i 00-init-flink-session.sql -f this_file.sql
+--
+-- Restore placeholder:
+--   SET 'execution.savepoint.path' = '<savepoint-path>';
+SET 'pipeline.name' = 'ingest-review-current';
 
 CREATE TEMPORARY TABLE review_events_kafka_raw (
   raw_json STRING
@@ -11,17 +15,6 @@ CREATE TEMPORARY TABLE review_events_kafka_raw (
   'scan.startup.mode' = 'earliest-offset',
   'format' = 'raw'
 );
-
-CREATE CATALOG paimon_lake WITH (
-  'type' = 'paimon',
-  'warehouse' = 's3://paimon/warehouse',
-  's3.endpoint' = 'http://minio:9000',
-  's3.access-key' = 'minioadmin',
-  's3.secret-key' = 'minioadmin',
-  's3.path.style.access' = 'true'
-);
-
-CREATE DATABASE IF NOT EXISTS paimon_lake.bronze;
 
 CREATE TABLE IF NOT EXISTS paimon_lake.bronze.review_current (
   review_id STRING,

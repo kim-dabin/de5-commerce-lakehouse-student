@@ -24,7 +24,11 @@ from airflow.operators.python import PythonOperator
 
 
 FLINK_OVERVIEW_URL = "http://flink-jobmanager:8081/jobs/overview"
-EXPECTED_FLINK_JOB_HINTS = ("ux_events_bronze", "review_current", "order_current")
+EXPECTED_FLINK_JOB_HINTS = (
+    "ingest-ux-events",
+    "ingest-review-current",
+    "ingest-order-current",
+)
 
 STARROCKS_SESSION_PREFIX = "SET new_planner_optimize_timeout = 30000;\n"
 

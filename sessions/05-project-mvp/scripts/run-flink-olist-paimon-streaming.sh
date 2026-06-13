@@ -3,6 +3,7 @@ set -euo pipefail
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.lite.yml}"
 JOB="${1:-all}"
+INIT_SQL=/workspace/labs/04-flink-paimon/00-init-flink-session.sql
 
 docker compose -f "${COMPOSE_FILE}" exec -T flink-jobmanager \
   /bin/bash -lc 'mkdir -p /opt/flink/log && chown -R flink:flink /opt/flink/log'
@@ -40,5 +41,6 @@ for sql_file in "${SQL_FILES[@]}"; do
   echo "== submit Flink SQL job: ${sql_file} =="
   docker compose -f "${COMPOSE_FILE}" exec -T --user flink flink-jobmanager \
     /opt/flink/bin/sql-client.sh \
+    -i "${INIT_SQL}" \
     -f "${sql_file}"
 done

@@ -131,6 +131,7 @@ data/sample/olist/*.jsonl
 주로 바꿀 파일:
 
 ```text
+labs/04-flink-paimon/00-init-flink-session.sql
 labs/04-flink-paimon/13a-insert-olist-ux-events-streaming.sql
 labs/04-flink-paimon/13b-insert-olist-review-current-streaming.sql
 labs/04-flink-paimon/13c-insert-olist-order-current-streaming.sql
@@ -140,6 +141,8 @@ scripts/query-olist-paimon.sh
 
 확인할 것:
 
+- `00-init-flink-session.sql`: 공통 SET, Paimon catalog, database
+- `SET 'pipeline.name' = 'ingest-...'`: Flink UI와 Airflow 검증에서 보이는 job 이름
 - `CREATE TEMPORARY TABLE ... WITH ('connector' = 'kafka')`
 - `CREATE TABLE IF NOT EXISTS paimon_lake.bronze...`
 - `INSERT INTO paimon_lake.bronze... SELECT JSON_VALUE(...)`

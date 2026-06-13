@@ -168,6 +168,7 @@ order_current_rows  2000
 
 2. `validate_flink_streaming_jobs` 실패
    - Flink UI에서 job이 `RUNNING`인지 확인합니다.
+   - 기대 job 이름은 `ingest-ux-events`, `ingest-review-current`, `ingest-order-current`입니다.
    - `./scripts/run-flink-olist-paimon-streaming.sh`를 다시 확인합니다.
 
 3. `validate_paimon_fresh` 실패

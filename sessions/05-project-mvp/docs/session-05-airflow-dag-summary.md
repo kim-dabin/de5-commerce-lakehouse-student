@@ -64,7 +64,7 @@ flowchart LR
 | task | 역할 | 실패하면 먼저 볼 곳 |
 |---|---|---|
 | `validate_runtime_services` | Kafka, Flink, MinIO, Iceberg REST, StarRocks가 응답하는지 확인 | Docker container 상태, port, healthcheck |
-| `validate_flink_streaming_jobs` | Flink UI에서 Olist streaming job 3개가 `RUNNING`인지 확인 | Flink UI, JobManager log, job submit 여부 |
+| `validate_flink_streaming_jobs` | Flink UI에서 Olist streaming job 3개(`ingest-ux-events`, `ingest-review-current`, `ingest-order-current`)가 `RUNNING`인지 확인 | Flink UI, JobManager log, job submit 여부 |
 | `validate_paimon_fresh` | Paimon table row count가 기대값과 맞는지 확인 | Paimon catalog, MinIO warehouse, Flink sink records |
 | `reset_iceberg_tables` | Iceberg analytics table을 재생성하기 위해 기존 table 초기화 | Spark/Iceberg catalog 설정, Iceberg REST |
 | `build_iceberg_analytics_mart` | Spark로 Paimon table을 읽어 Iceberg analytics mart 생성 | Spark log, Paimon read, Iceberg write |
@@ -239,4 +239,3 @@ Airflow는 이 도구들을 대체하지 않습니다. 대신 "이 단계가 끝
 그래서 이번 DAG의 첫 번째 task는 데이터를 처리하는 task가 아니라 runtime service 검증입니다. 두 번째도 Flink job 실행이 아니라 Flink streaming job이 살아 있는지 확인하는 task입니다.
 
 이 설계가 실무적으로 중요한 이유는, 운영에서는 "전체가 안 됩니다"라는 말보다 "Flink job은 RUNNING인데 Paimon freshness 검증에서 실패했습니다"처럼 실패 지점을 좁히는 것이 훨씬 중요하기 때문입니다.
-

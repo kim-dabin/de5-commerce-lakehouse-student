@@ -60,18 +60,21 @@ docker compose -f docker-compose.lite.yml ps
 Flink UI에서 아래 3개 job이 `RUNNING`인지 확인합니다.
 
 ```text
-ux_events_bronze
-review_current
-order_current
+ingest-ux-events
+ingest-review-current
+ingest-order-current
 ```
 
 `./scripts/run-flink-olist-paimon-streaming.sh`는 내부적으로 streaming SQL을 job별로 나누어 제출합니다.
 
 ```text
-13a -> ux_events_bronze
-13b -> review_current
-13c -> order_current
+00-init -> 공통 SET / Paimon catalog
+13a -> ingest-ux-events      -> ux_events_bronze
+13b -> ingest-review-current -> review_current
+13c -> ingest-order-current  -> order_current
 ```
+
+현재 제출 방식은 여전히 Flink session mode입니다. 다만 job 하나를 하나의 배포/복구 단위로 다룰 수 있도록 SQL artifact를 먼저 분리했습니다. 이 구조가 있어야 나중에 application mode나 savepoint 기반 재배포로 옮기기 쉽습니다.
 
 필요하면 저장 모델 기준으로 나누어 실행할 수도 있습니다.
 
