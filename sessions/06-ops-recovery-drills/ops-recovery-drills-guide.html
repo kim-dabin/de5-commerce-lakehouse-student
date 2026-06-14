@@ -117,7 +117,7 @@
       <li><a href="#r6">R6 · StarRocks metadata refresh</a></li>
       <li><a href="#r7">R7 · small file 컴팩션 (확장)</a></li>
       <li><a href="#r8">R8 · Spark driver OOM (시연)</a></li>
-      <li><a href="#note">인시던트 노트 / Plan B</a></li>
+      <li><a href="#note">인시던트 노트 / 제출</a></li>
     </ul>
   </div>
 
@@ -249,7 +249,7 @@ docker compose -f docker-compose.lite.yml logs --tail=120 flink-taskmanager</cod
 ./scripts/query-olist-paimon.sh              <span class="g"># 16,693 / 1,971 / 2,000 복구</span></code></pre></div>
     <div class="phase p-point"><h4>포인트</h4>
       Kafka에 이미 들어간 잘못된 메시지는 수정되지 않습니다. 이 라운드의 증거는 <b>Kafka raw payload와 Flink log</b>입니다. 운영형 fix는 전체 리셋이 아니라 <b>bad record quarantine 또는 tolerant parsing</b>입니다(위 리셋은 수업용 빠른 회복 편의 조치).</div>
-    <div class="callout"><b>시간 배분:</b> R4는 복구가 전체 리셋이라 가장 무겁습니다(~3분). 시간이 빠듯하면 멘토 시연으로 처리하세요.</div>
+    <div class="callout"><b>참고:</b> R4는 복구가 전체 리셋이라 가장 무겁습니다(~3분). 진행 방식은 멘토 안내에 따르세요(직접 핸즈온 또는 시연 관찰).</div>
   </div>
 
   <!-- ============ R5 ============ -->
@@ -334,8 +334,8 @@ docker compose -f docker-compose.lite.yml logs --tail=120 flink-taskmanager</cod
     <div class="callout warn"><b>안전 주의:</b> Mac mini는 컨테이너 메모리 무제한 + 16GB 공유입니다. <code>--driver-memory</code>로 캡을 건 Spark driver OOM만 안전하며, <b>캡 없는 OOM(특히 Flink TaskManager OOM)은 전체 스택을 위협하므로 주입하지 않습니다.</b></div>
   </div>
 
-  <!-- ============ NOTE / PLAN B ============ -->
-  <h2 id="note">인시던트 노트 · 강사용 Plan B</h2>
+  <!-- ============ NOTE / 제출 ============ -->
+  <h2 id="note">인시던트 노트 / 제출</h2>
 
   <h3>각 라운드 인시던트 노트 (4줄 + R5는 1줄 추가)</h3>
 <pre><code>장애:
@@ -346,18 +346,10 @@ docker compose -f docker-compose.lite.yml logs --tail=120 flink-taskmanager</cod
 복구 기준점 후보 snapshot_id:</code></pre>
   <p class="small">이번 주부터 과제는 "제출하고 끝"이 아니라 최종 발표 자료로 쌓아갑니다. 같은 공통 프로젝트라도 어떤 증거를 중요하게 봤고 어떤 운영 리스크를 발견했는지가 개인 포트폴리오의 차별점입니다.</p>
 
-  <h3>수업 중 문제 생겼을 때 — Plan B</h3>
-  <table>
-    <tr><th>증상</th><th>즉시 우회 / 근본 복구</th></tr>
-    <tr><td>R5에서 BI(Streamlit)가 빨간 KeyError</td><td>"이게 BI가 깨진 증거"로 활용하거나, <code>query-iceberg-tables.sh</code>/<code>query-bi-metrics.sh</code>의 0 출력으로 대체</td></tr>
-    <tr><td>R5 복구 트리거했는데 DAG fail</td><td>Flink 3잡 RUNNING 먼저 확인(<code>ops-flink-list-jobs.sh</code>) — validate_flink_streaming_jobs에서 막힘. 죽었으면 <code>run-flink-olist-paimon-streaming.sh all</code> 후 재트리거</td></tr>
-    <tr><td>R1에서 TM 올렸는데 잡이 안 돌아옴(FAILED)</td><td><code>run-flink-olist-paimon-streaming.sh all</code> 재제출. append 중복이 걱정되면 전체 리셋(topic+paimon) 후 재기동</td></tr>
-    <tr><td>R3 복구 후에도 produce 실패</td><td><code>kafka2</code>가 healthy인지 확인(<code>docker ps</code>). 토픽 <code>Isr: 1,2</code> 회복까지 잠시 대기 후 재시도</td></tr>
-    <tr><td>R4 후 ux 잡 복구 안 됨</td><td>반드시 <code>reset-olist-kafka-topics.sh</code>(poison 제거)부터. topic만 reset하고 paimon 안 하면 잡이 또 죽음 → 전체 리셋</td></tr>
-    <tr><td>R6에서 refresh 전후 숫자 동일</td><td>정상입니다. "cache가 이미 fresh"라는 뜻이고, serving 계층을 별도 확인했다는 결론은 같음</td></tr>
-    <tr><td>StarRocks 응답 없음 / CN down</td><td><code>docker compose up -d starrocks-fe starrocks-cn</code> 후 <code>SHOW COMPUTE NODES</code> Alive 확인</td></tr>
-    <tr><td>전 라운드 공통 — baseline 꼬임</td><td><code>ops-baseline-evidence.sh</code>로 어느 계층까지 정상인지 증거 수집 후 해당 계층만 리셋</td></tr>
-  </table>
+  <h3>막혔을 때</h3>
+  <p>수업 중 막히면 멈춰서 혼자 고치려 하기보다, <b>실패한 명령어와 에러 메시지를 남기고 멘토를 부르세요.</b> 실패 로그도 이번 차시의 정상 산출물입니다. 지금 어느 계층까지 정상인지부터 빠르게 확인하면 원인을 좁히기 쉽습니다.</p>
+<pre><code>./scripts/ops-baseline-evidence.sh   <span class="c"># Kafka/Flink/Paimon/Iceberg/StarRocks 상태를 한 번에 확인</span></code></pre>
+  <div class="callout"><b>복구가 꼬였다고 느껴지면</b> 직접 여러 reset를 섞지 말고, 위 증거부터 캡처한 뒤 멘토와 함께 어느 계층만 되돌릴지 정하세요.</div>
 
   <h3>마지막 정리</h3>
 <pre><code>./scripts/ops-baseline-evidence.sh           <span class="c"># 모든 계층 baseline 재확인</span></code></pre>
