@@ -55,9 +55,10 @@
 
 수업 축소판:
 
-- 단일 broker topic에 `min.insync.replicas=2`를 넣는다.
-- producer가 실패하는 것을 확인하고, topic config를 복구한다.
-- 이 주입은 producer가 `acks=all`일 때 의미가 있다. 우리 실습 producer는 `acks=all`, `enable.idempotence=true`를 명시한다.
+- 단일 broker topic에 `min.insync.replicas=2`를 넣어 실제 ISR 오설정 맥락을 보여준다.
+- 로컬 Kafka에서는 이 설정만으로 producer 실패가 항상 눈에 띄지 않을 수 있어, 수업 재현에서는 `max.message.bytes=64`도 함께 낮춘다.
+- producer가 topic write-path에서 실패하는 것을 확인하고, topic config를 복구한다.
+- 우리 실습 producer는 `acks=all`, `enable.idempotence=true`를 명시한다.
 - R1과 R3는 downstream에서 모두 "count가 멈춤"처럼 보일 수 있다. R1은 Kafka offset은 늘고 Flink가 못 따라가는 케이스이고, R3는 producer가 실패해 Kafka offset 자체가 늘지 않는 케이스다.
 
 핵심 문장:

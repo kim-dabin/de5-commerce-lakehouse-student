@@ -10,7 +10,7 @@ docker compose -f "${COMPOSE_FILE}" exec -T kafka \
   --alter \
   --entity-type topics \
   --entity-name "${TOPIC}" \
-  --delete-config min.insync.replicas
+  --delete-config min.insync.replicas,max.message.bytes
 
 echo
 echo "Kafka topic config after recovery:"

@@ -92,7 +92,7 @@ Airflow UI는 `http://localhost:8080`, 기본 계정은 `admin / admin`입니다
 |---|---|---|
 | R1 TaskManager 장애 | 디스크/리소스 압박으로 kubelet이 TaskManager pod를 evict하고, 입력이 계속 오면 backlog/lag가 증가 | 로컬에서는 TaskManager 중지로 eviction 이후 효과만 축소 재현, checkpoint/restart, count 재검증 |
 | R2 checkpoint/savepoint | 기존 checkpoint/last-state가 깨진 메타데이터를 계속 참조해 stateless 재기동이 필요했던 복구 | 학생은 clean savepoint KEEP, 멘토는 bad savepoint DISCARD 판단 시연 |
-| R3 Kafka ISR 설정 오류 | retention 값을 다른 설정에 넣거나 ISR 설정을 잘못 넣어 acks=all producer가 실패 | `acks=all` producer 전제에서 `min.insync.replicas=2`를 단일 broker topic에 주입 |
+| R3 Kafka write-path 설정 오류 | retention 값을 다른 설정에 넣거나 ISR 설정을 잘못 넣어 acks=all producer가 실패 | 실제 맥락은 `min.insync.replicas=2`, 로컬에서는 실패를 확실히 보이도록 `max.message.bytes=64`도 함께 주입 |
 | R4 payload/schema 오류 | schemaless source에서 특정 batch부터 타입/필드가 달라져 parser 또는 sink가 실패 | 잘못된 `price` 타입 이벤트를 Kafka에 주입하고 Kafka raw payload/Flink log 확인 |
 | R5 Iceberg mart empty/누락 | DAG는 성공처럼 보였지만 Iceberg mart가 비어 BI에서 장애가 드러난 사건 | Iceberg mart 하나를 drop하지 않고 empty로 만들고, snapshot/time travel로 복구 기준점 후보를 확인 |
 | R6 metadata/cache stale | native table은 정상인데 StarRocks/Iceberg-compatible view가 최신 상태를 못 보는 문제 | R5 이후 StarRocks external metadata refresh 전후 비교 |
