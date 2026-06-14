@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>6차시 · 운영 장애 대응 / 복구 드릴 가이드</title>
+<style>
+  :root {
+    --bg: #f8f4ec;
+    --paper: #fffdf8;
+    --ink: #172033;
+    --muted: #536172;
+    --line: #dbe2ea;
+    --soft: #eef3f6;
+    --orange: #d97706;
+    --orange-dark: #b45309;
+    --orange-soft: #fff4df;
+    --teal: #0f9488;
+    --teal-dark: #0f766e;
+    --teal-soft: #e4f4f2;
+    --green: #2f8f3e;
+    --green-soft: #e8f4e9;
+    --blue: #2563eb;
+    --blue-soft: #e8f0ff;
+    --purple: #6d28d9;
+    --purple-soft: #f0eaff;
+    --red: #b42318;
+    --red-soft: #fff0ed;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.6; }
+  .topbar { height: 7px; background: linear-gradient(90deg, var(--teal-dark), var(--orange)); }
+  main { max-width: 1120px; margin: 0 auto; padding: 40px 28px 90px; }
+  .eyebrow { color: var(--teal-dark); font-family: var(--mono); font-size: 13px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+  h1 { font-size: 34px; line-height: 1.2; margin: 8px 0 10px; }
+  h2 { font-size: 24px; margin: 46px 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--line); }
+  h3 { font-size: 18px; margin: 22px 0 8px; }
+  p { margin: 10px 0; }
+  .lead { font-size: 17px; color: var(--muted); max-width: 800px; }
+  .quote { border-left: 4px solid var(--teal); background: var(--teal-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; font-weight: 600; }
+  code { font-family: var(--mono); background: var(--soft); padding: 1px 6px; border-radius: 5px; font-size: .92em; }
+  pre { background: #0f1b2d; color: #e6edf3; border-radius: 10px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 13.5px; line-height: 1.55; margin: 10px 0; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7d8aa0; }       /* comment */
+  pre .o { color: #ffd9a8; }       /* output / highlight */
+  pre .g { color: #86e29b; }       /* good */
+  pre .r { color: #ff9b8a; }       /* error/red */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14.5px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--soft); font-size: 13px; letter-spacing: .02em; }
+  tr:last-child td { border-bottom: none; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+  .chip { background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-family: var(--mono); }
+  .chip b { color: var(--teal-dark); }
+  .toc { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin: 22px 0; }
+  .toc ul { margin: 6px 0 0; padding-left: 18px; columns: 2; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--orange-dark); text-decoration: underline; }
+
+  .round { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 4px 22px 20px; margin: 22px 0; box-shadow: 0 1px 0 rgba(0,0,0,.02); }
+  .round .hd { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 18px 0 6px; }
+  .rno { font-family: var(--mono); font-weight: 800; font-size: 14px; color: #fff; background: var(--teal-dark); border-radius: 7px; padding: 4px 10px; }
+  .rno.ext { background: var(--purple); }
+  .rno.mentor { background: var(--orange-dark); }
+  .rtitle { font-size: 20px; font-weight: 700; }
+  .badge { font-family: var(--mono); font-size: 11.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; letter-spacing: .03em; }
+  .b-ok { background: var(--green-soft); color: var(--green); border: 1px solid #bfe3c4; }
+  .b-ext { background: var(--purple-soft); color: var(--purple); border: 1px solid #d8c9f5; }
+  .b-mentor { background: var(--orange-soft); color: var(--orange-dark); border: 1px solid #f3d9a8; }
+
+  .phase { border-radius: 10px; padding: 10px 14px; margin: 12px 0; border: 1px solid var(--line); }
+  .phase h4 { margin: 0 0 6px; font-size: 13px; font-family: var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+  .p-intent { background: #fbfbfd; }
+  .p-inject { background: var(--red-soft); border-color: #f3cdc6; }
+  .p-inject h4 { color: var(--red); }
+  .p-observe { background: var(--blue-soft); border-color: #cdd9f5; }
+  .p-observe h4 { color: var(--blue); }
+  .p-recover { background: var(--green-soft); border-color: #bfe3c4; }
+  .p-recover h4 { color: var(--green); }
+  .p-point { background: var(--teal-soft); border-color: #b9e0db; }
+  .p-point h4 { color: var(--teal-dark); }
+  .callout { border-left: 4px solid var(--orange); background: var(--orange-soft); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 14.5px; }
+  .callout.warn { border-color: var(--red); background: var(--red-soft); }
+  footer { margin-top: 50px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  .small { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<main>
+
+  <div class="eyebrow">DE5 · 6차시 · 운영 장애 대응</div>
+  <h1>장애 대응 / 복구 드릴 따라하기 가이드</h1>
+  <p class="lead">5차시에서 완성한 Olist 레이크하우스 스택(Kafka → Flink → Paimon → Iceberg → Spark → StarRocks/BI)을 직접 망가뜨리고 다시 정상으로 되돌리는 실습입니다. 모든 명령과 예상 출력은 실제 스택에서 검증한 값입니다.</p>
+
+  <div class="quote">“어디까지 정상이고, 어디부터 의심해야 하는지 <u>증거로</u> 말한다.”</div>
+
+  <div class="meta">
+    <span class="chip">실행 위치 <b>sessions/05-project-mvp</b></span>
+    <span class="chip">브로커 <b>kafka, kafka2 (2대)</b></span>
+    <span class="chip">기준 count <b>16,693 / 1,971 / 2,000</b></span>
+    <span class="chip">mart <b>olist_category_daily = 759</b></span>
+  </div>
+
+  <div class="toc">
+    <strong>라운드 목차</strong>
+    <ul>
+      <li><a href="#setup">0. 기준 상태(Baseline)</a></li>
+      <li><a href="#r1">R1 · TaskManager 장애</a></li>
+      <li><a href="#r2">R2 · savepoint 재배포</a></li>
+      <li><a href="#r3">R3 · Kafka ISR 부족</a></li>
+      <li><a href="#r4">R4 · 잘못된 payload</a></li>
+      <li><a href="#r5">R5 · Iceberg mart empty</a></li>
+      <li><a href="#r5b">R5b · snapshot rollback (확장)</a></li>
+      <li><a href="#r6">R6 · StarRocks metadata refresh</a></li>
+      <li><a href="#r7">R7 · small file 컴팩션 (확장)</a></li>
+      <li><a href="#r8">R8 · Spark driver OOM (시연)</a></li>
+      <li><a href="#note">인시던트 노트 / Plan B</a></li>
+    </ul>
+  </div>
+
+  <div class="callout">
+    <b>공통 진행 리듬:</b> 모든 라운드는 <code>장애 주입 → 증상 관찰 → 원인 가설 → 복구 → 증거 캡처</code> 순서로 진행합니다.
+    막히면 멈춰서 고치기보다 <b>실패한 명령어와 에러 메시지를 남기세요.</b> 실패 로그도 정상 산출물입니다.
+  </div>
+
+  <!-- ============ SETUP ============ -->
+  <h2 id="setup">0. 기준 상태(Baseline) 만들기</h2>
+  <p>수업 시작 전(또는 첫 10분)에 아래 상태를 맞춥니다. 모든 명령은 <code>sessions/05-project-mvp</code>에서 실행합니다.</p>
+<pre><code><span class="c"># Mac mini 접속 (Docker 실습은 Mac mini에서)</span>
+ssh mini
+cd /Users/dbkim/bootcamp/de5-commerce-lakehouse-student/sessions/05-project-mvp
+export PATH="/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin:$PATH"
+
+git pull origin main
+docker compose -f docker-compose.lite.yml up -d --build     <span class="c"># kafka, kafka2 포함 기동</span>
+docker compose -f docker-compose.lite.yml ps
+
+./scripts/reset-olist-kafka-topics.sh        <span class="c"># 토픽 RF=2 + min.insync.replicas=2</span>
+./scripts/reset-olist-paimon.sh
+./scripts/run-flink-olist-paimon-streaming.sh all
+./scripts/produce-olist-ux-events.sh
+./scripts/produce-olist-review-events.sh
+./scripts/produce-olist-order-events.sh
+./scripts/start-airflow.sh
+./scripts/trigger-airflow-pipeline.sh        <span class="c"># Airflow UI에서 success 확인</span>
+./scripts/ops-baseline-evidence.sh</code></pre>
+
+  <h3>정상 기준 (이 값이 baseline)</h3>
+  <table>
+    <tr><th>계층</th><th>확인 방법</th><th>기준값</th></tr>
+    <tr><td>Kafka</td><td><code>kafka-topics --describe</code></td><td>broker 2대(<code>de5-kafka</code>, <code>de5-kafka2</code>), olist 토픽 <code>RF=2 / Isr: 1,2</code></td></tr>
+    <tr><td>Flink</td><td><code>./scripts/ops-flink-list-jobs.sh</code></td><td><code>ingest-ux-events</code>, <code>ingest-review-current</code>, <code>ingest-order-current</code> <b>3개 RUNNING</b></td></tr>
+    <tr><td>Paimon</td><td><code>./scripts/query-olist-paimon.sh</code></td><td><b>16,693 / 1,971 / 2,000</b></td></tr>
+    <tr><td>Iceberg</td><td><code>./scripts/query-iceberg-tables.sh</code></td><td>mart 7개 조회 가능, <code>olist_category_daily</code> <b>759</b>행</td></tr>
+    <tr><td>StarRocks/BI</td><td><code>./scripts/query-bi-metrics.sh</code></td><td>external catalog로 조회, <code>olist_category_daily</code> <b>759</b></td></tr>
+    <tr><td>Airflow</td><td><code>localhost:8080</code> (admin/admin)</td><td><code>de5_olist_project_mvp_pipeline</code> 최근 run <b>success</b></td></tr>
+  </table>
+  <p class="small">Airflow UI <code>http://localhost:8080</code> · Streamlit BI <code>http://localhost:8501</code> · Flink UI <code>http://localhost:8081</code></p>
+
+  <!-- ============ R1 ============ -->
+  <div class="round" id="r1">
+    <div class="hd"><span class="rno">R1</span><span class="rtitle">TaskManager 장애</span><span class="badge b-ok">검증됨</span></div>
+    <div class="phase p-intent"><h4>의도 · 실제 운영 형태</h4>
+      디스크/리소스 압박으로 kubelet이 TaskManager pod를 evict → slot 상실 → 소비 중단 → backlog/lag 증가. 로컬에서는 TaskManager를 직접 멈춰 <b>eviction 이후 효과만 축소 재현</b>하고, checkpoint 기반 복구를 관찰합니다.</div>
+    <div class="phase p-inject"><h4>주입</h4>
+<pre><code>./scripts/ops-r1-stop-taskmanager.sh</code></pre></div>
+    <div class="phase p-observe"><h4>관찰</h4>
+<pre><code>docker compose -f docker-compose.lite.yml ps flink-jobmanager flink-taskmanager
+./scripts/ops-flink-list-jobs.sh        <span class="c"># 실행 잡이 3 → 0 (slot 없음/restarting)</span>
+./scripts/ops-kafka-topic-offsets.sh ux-events</code></pre>
+      <p class="small">관찰 결과: TaskManager 중지 직후 <code>flink list -r</code>의 RUNNING 잡이 <b>0</b>이 됩니다(슬롯을 못 받아 대기).</p></div>
+    <div class="phase p-recover"><h4>복구</h4>
+<pre><code>./scripts/ops-r1-start-taskmanager.sh
+./scripts/ops-flink-list-jobs.sh        <span class="g"># 잠시 후 3개 RUNNING 자동 복구</span>
+./scripts/query-olist-paimon.sh         <span class="c"># count 그대로 (16,693 ...)</span></code></pre>
+      <p class="small">관찰 결과: TaskManager 재기동 후 ~15초 내 3잡이 <b>checkpoint에서 자동 복구</b>되어 RUNNING.</p></div>
+    <div class="phase p-point"><h4>포인트</h4>
+      RUNNING/RESTARTING 상태만으로는 끝이 아닙니다. TaskManager 상태, job 상태, checkpoint/restart 로그, Paimon count를 교차검증합니다. lag/offset은 하나의 신호일 뿐 단독으로 원인을 확정하지 않습니다.</div>
+    <div class="callout warn"><b>타이밍 주의:</b> restart-strategy는 <code>fixed-delay / 3회</code>입니다. TaskManager를 <b>1~2분 내로 짧게</b> 내렸다 올리세요. 오래 두면 재시작 3회가 소진되어 잡이 FAILED로 남고, 그때는 <code>run-flink-olist-paimon-streaming.sh all</code> 재제출(또는 전체 리셋)이 필요합니다.</div>
+  </div>
+
+  <!-- ============ R2 ============ -->
+  <div class="round" id="r2">
+    <div class="hd"><span class="rno">R2</span><span class="rtitle">savepoint 기반 재배포</span><span class="badge b-ok">검증됨</span></div>
+    <div class="phase p-intent"><h4>의도 · 실제 운영 형태</h4>
+      운영 복구는 "다시 실행"이 아니라 "어느 상태에서 이어갈지"를 명시하는 일입니다. clean savepoint 복구는 <b>전원 핸즈온</b>, 깨진 savepoint 복구는 <b>멘토 시연</b>으로 분리합니다.</div>
+    <div class="phase p-inject"><h4>주입 (UX append job 하나만 savepoint로 정지)</h4>
+<pre><code>./scripts/ops-r2-stop-with-savepoint.sh ingest-ux-events
+<span class="c"># savepoint 경로가 .ops-r2-last-savepoint 에 저장됨 → restore 시 경로 생략 가능</span></code></pre>
+      <p class="small">관찰 결과: <code>{"status":{"id":"COMPLETED"},"operation":{"location":"file:/opt/flink/savepoints/savepoint-..."}}</code> 출력 후 잡이 cancel되어 RUNNING 3 → 2.</p></div>
+    <div class="phase p-recover"><h4>복구 (KEEP — savepoint에서 이어받기)</h4>
+<pre><code>./scripts/ops-r2-restore-job-from-savepoint.sh ingest-ux-events
+./scripts/ops-flink-list-jobs.sh        <span class="g"># ingest-ux-events 새 JobID로 RUNNING → 다시 3개</span></code></pre></div>
+    <div class="phase p-observe"><h4>멘토 시연 (DISCARD — 깨진 savepoint)</h4>
+<pre><code>./scripts/ops-r2-restore-bad-savepoint-demo.sh ingest-ux-events
+<span class="c"># 의도적으로 잘못된 savepoint 경로 → 복구 실패 재현</span></code></pre></div>
+    <div class="phase p-point"><h4>포인트</h4>
+      이어받을 state가 깨져 있으면 resume은 복구가 아니라 같은 실패의 반복입니다. 이때는 상태를 버리고(stateless) 다시 시작한 뒤 원천에서 재처리하거나 staging 검증 후 cutover하는 판단이 필요합니다. 학생 핸즈온 = KEEP, 멘토 시연 = DISCARD.</div>
+  </div>
+
+  <!-- ============ R3 ============ -->
+  <div class="round" id="r3">
+    <div class="hd"><span class="rno">R3</span><span class="rtitle">Kafka ISR 부족 (acks=all 쓰기 실패)</span><span class="badge b-ok">검증됨</span></div>
+    <div class="phase p-intent"><h4>의도 · 실제 운영 형태</h4>
+      <code>acks=all</code> producer는 in-sync replica 수가 <code>min.insync.replicas</code> 이상이어야 ack를 받습니다. broker 장애/ISR 축소가 겹치면 <code>ISR &lt; min.insync.replicas</code>가 되어 쓰기가 거부됩니다(<code>NotEnoughReplicasException</code>). 데이터 유실이 아니라 "내구성 기준을 못 맞춰 쓰기를 막는" 안전장치입니다.</div>
+    <div class="phase p-intent"><h4>전제 확인</h4>
+<pre><code>docker compose -f docker-compose.lite.yml exec -T kafka \
+  /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic ux-events
+<span class="c"># ReplicationFactor: 2, Isr: 1,2 이면 정상</span></code></pre></div>
+    <div class="phase p-inject"><h4>주입 (두 번째 broker 정지)</h4>
+<pre><code>./scripts/ops-r3-break-kafka-isr.sh          <span class="c"># kafka2 stop → Isr 2→1</span>
+./scripts/produce-olist-ux-events.sh --max-events 200</code></pre>
+      <p>관찰 결과 — producer가 비0으로 종료하며 다음을 출력:</p>
+<pre><code><span class="r">producer failed: 200 delivery failure(s)</span>
+<span class="c"># 원인: NotEnoughReplicasException (Isr 1 &lt; min.insync.replicas 2)</span>
+<span class="c"># Kafka offset은 늘지 않음 = 입력 계층(쓰기)에서 막힘. 읽기(Flink)는 계속 정상.</span></code></pre></div>
+    <div class="phase p-recover"><h4>복구 (broker 재기동)</h4>
+<pre><code>./scripts/ops-r3-fix-kafka-isr.sh            <span class="g"># kafka2 start → Isr 1→2 회복</span>
+./scripts/produce-olist-ux-events.sh --max-events 200   <span class="g"># 이번엔 성공</span></code></pre></div>
+    <div class="phase p-point"><h4>포인트</h4>
+      producer 실패가 항상 "코드 버그"는 아닙니다. topic 내구성 설정 + broker 가용성 문제일 수 있습니다.
+      <br><b>주의:</b> 단일 broker(RF=1)에서는 <code>min.insync.replicas=2</code>를 걸어도 쓰기가 그냥 성공합니다(ISR이 항상 1뿐이라 기준이 적용 안 됨). 그래서 이 라운드는 <code>kafka2</code>가 반드시 떠 있어야 성립합니다.</div>
+  </div>
+
+  <!-- ============ R4 ============ -->
+  <div class="round" id="r4">
+    <div class="hd"><span class="rno">R4</span><span class="rtitle">잘못된 payload 주입</span><span class="badge b-ok">검증됨</span></div>
+    <div class="phase p-intent"><h4>의도 · 실제 운영 형태</h4>
+      schemaless source에서 특정 batch부터 타입/필드가 달라져 parser 또는 sink가 실패하는 상황. 잘못된 <code>price</code> 타입 이벤트를 Kafka에 넣고 Flink가 어떻게 반응하는지 봅니다.</div>
+    <div class="phase p-inject"><h4>주입</h4>
+<pre><code>./scripts/ops-r4-produce-bad-ux-event.sh     <span class="c"># price="BROKEN_PRICE" 이벤트 1건</span></code></pre></div>
+    <div class="phase p-observe"><h4>관찰 (reset 전에 raw payload / 로그를 먼저 본다)</h4>
+<pre><code>./scripts/ops-flink-list-jobs.sh             <span class="c"># ingest-ux-events 가 사라짐(실패/restarting)</span>
+docker compose -f docker-compose.lite.yml logs --tail=120 flink-taskmanager</code></pre>
+      <p>관찰 결과 — TaskManager 로그:</p>
+<pre><code><span class="r">Caused by: java.lang.NumberFormatException: For input string: 'BROKEN_PRICE'. Overflow.</span>
+    at ...BinaryStringDataUtil.toDecimal(...)
+<span class="c"># UX job은 price를 DECIMAL로 엄격하게 CAST → bad record에서 operator가 실패</span></code></pre></div>
+    <div class="phase p-recover"><h4>복구 (clean reset — Kafka는 불변이므로 원천을 다시 만든다)</h4>
+<pre><code><span class="c"># 실행 중인 잡 취소 후 토픽/Paimon 리셋 → 재적재 → DAG</span>
+./scripts/reset-olist-kafka-topics.sh
+./scripts/reset-olist-paimon.sh
+./scripts/run-flink-olist-paimon-streaming.sh all
+./scripts/produce-olist-ux-events.sh &amp;&amp; ./scripts/produce-olist-review-events.sh &amp;&amp; ./scripts/produce-olist-order-events.sh
+./scripts/trigger-airflow-pipeline.sh
+./scripts/query-olist-paimon.sh              <span class="g"># 16,693 / 1,971 / 2,000 복구</span></code></pre></div>
+    <div class="phase p-point"><h4>포인트</h4>
+      Kafka에 이미 들어간 잘못된 메시지는 수정되지 않습니다. 이 라운드의 증거는 <b>Kafka raw payload와 Flink log</b>입니다. 운영형 fix는 전체 리셋이 아니라 <b>bad record quarantine 또는 tolerant parsing</b>입니다(위 리셋은 수업용 빠른 회복 편의 조치).</div>
+    <div class="callout"><b>시간 배분:</b> R4는 복구가 전체 리셋이라 가장 무겁습니다(~3분). 시간이 빠듯하면 멘토 시연으로 처리하세요.</div>
+  </div>
+
+  <!-- ============ R5 ============ -->
+  <div class="round" id="r5">
+    <div class="hd"><span class="rno">R5</span><span class="rtitle">Iceberg mart empty / 누락</span><span class="badge b-ok">검증됨</span></div>
+    <div class="phase p-intent"><h4>의도 · 실제 운영 형태</h4>
+      DAG는 성공처럼 보였지만 BI가 읽는 Iceberg mart가 비어 BI에서 장애가 드러난 사건. <b>"DAG success가 곧 BI 정상은 아니다"</b>가 핵심 메시지입니다.</div>
+    <div class="phase p-inject"><h4>주입 (drop이 아니라 row만 비움)</h4>
+<pre><code>./scripts/ops-r5-empty-iceberg-mart.sh
+./scripts/query-iceberg-tables.sh            <span class="c"># olist_category_daily COUNT(*) = 0</span>
+./scripts/query-bi-metrics.sh                <span class="c"># StarRocks 기준도 category_daily = 0</span></code></pre>
+      <p>관찰 결과 — Spark/Iceberg와 StarRocks 모두 <b>759 → 0</b>. 마지막 Airflow DAG run은 <b>여전히 success</b>로 남아 있습니다(주입은 DAG 이후에 일어나고, validate 단계는 이 테이블을 검사하지 않음).</p>
+      <div class="callout warn"><b>BI 화면 주의:</b> Streamlit BI를 열면 상단 KPI/차트는 정상이지만 맨 아래 <b>“Analytics Table” 패널이 <code>KeyError</code> 예외로 깨집니다</b>(빈 데이터프레임 컬럼 인덱싱). "0건으로 깔끔히 빈 화면"이 아니라 <b>예외 크래시</b>로 보입니다. 깔끔한 증거가 필요하면 화면 대신 <code>query-iceberg-tables.sh</code>/<code>query-bi-metrics.sh</code>의 0 출력을 쓰세요.</div></div>
+    <div class="phase p-observe"><h4>복구 기준점 확인 (rollback 실행 전 단계)</h4>
+<pre><code>./scripts/ops-r5-find-iceberg-recovery-point.sh
+<span class="c"># 출력: RECOVERY_POINT_CANDIDATE snapshot_id=&lt;id&gt; row_count=759</span></code></pre></div>
+    <div class="phase p-recover"><h4>복구 — 방법 A: rebuild (권위 있는 정답, 원천에서 재derive)</h4>
+<pre><code>./scripts/trigger-airflow-pipeline.sh        <span class="g"># DAG가 mart 재생성 → 759</span>
+./scripts/query-iceberg-tables.sh
+./scripts/query-bi-metrics.sh</code></pre></div>
+    <div class="phase p-point"><h4>포인트</h4>
+      Flink/Paimon이 정상이고 DAG가 초록이어도 mart가 비면 BI는 실패합니다. 현재 프로젝트는 <code>validate_bi_metric_counts</code>로 일부 지표를 검증하도록 보강했지만, 모든 mart를 검사하지는 않습니다. drop이 아니라 empty인 이유는 실제 사례가 "테이블 없음"이 아니라 "테이블은 있는데 데이터가 없음"이기 때문입니다.</div>
+  </div>
+
+  <!-- ============ R5b ============ -->
+  <div class="round" id="r5b">
+    <div class="hd"><span class="rno ext">R5b</span><span class="rtitle">snapshot rollback (확장)</span><span class="badge b-ext">확장 · 검증됨</span></div>
+    <div class="phase p-intent"><h4>의도</h4>
+      R5의 두 번째 복구 방법. mart가 깨졌을 때 원천에서 다시 만드는 대신, Iceberg snapshot 포인터를 직전 정상 snapshot으로 <b>즉시</b> 되돌립니다.</div>
+    <div class="phase p-recover"><h4>복구 — 방법 B: rollback (즉시)</h4>
+<pre><code><span class="c"># R5에서 ops-r5-empty로 비운 뒤, find-recovery-point가 준 snapshot_id 사용</span>
+./scripts/ops-r5b-rollback-iceberg-mart.sh &lt;snapshot_id&gt;
+./scripts/query-iceberg-tables.sh            <span class="g"># 0 → 759 즉시 복구</span>
+./scripts/query-bi-metrics.sh                <span class="g"># StarRocks도 759</span></code></pre></div>
+    <div class="phase p-point"><h4>포인트 — rebuild vs rollback</h4>
+      <b>rebuild(R5·Airflow):</b> 원천(Paimon)에서 다시 derive하는 권위 있는 복구. 느리고 원천이 정상이어야 함.<br>
+      <b>rollback(R5b):</b> metadata 포인터만 과거 snapshot으로. 즉시지만 그 snapshot 이후 commit을 전부 폐기함 → "그래도 되는 상황"에서만.<br>
+      find-recovery-point는 "어느 snapshot까지 정상인가"를 확정하는 단계이고, rollback은 그 다음의 결정·실행입니다.</div>
+  </div>
+
+  <!-- ============ R6 ============ -->
+  <div class="round" id="r6">
+    <div class="hd"><span class="rno">R6</span><span class="rtitle">StarRocks external metadata refresh</span><span class="badge b-ok">검증됨</span></div>
+    <div class="phase p-intent"><h4>의도 · 실제 운영 형태</h4>
+      native table은 정상인데 조회 계층(StarRocks/Iceberg-compatible view)이 최신 상태를 못 보는 문제. 독립 파괴 주입이 아니라 R5/rebuild 이후 serving 계층을 다시 맞추는 <b>검증 라운드</b>입니다.</div>
+    <div class="phase p-recover"><h4>관찰 / 복구</h4>
+<pre><code>./scripts/query-bi-metrics.sh                <span class="c"># refresh 전 숫자</span>
+./scripts/ops-r6-refresh-starrocks-iceberg.sh
+./scripts/query-bi-metrics.sh                <span class="c"># refresh 후 숫자</span></code></pre></div>
+    <div class="phase p-point"><h4>포인트</h4>
+      이 스택의 StarRocks Iceberg external catalog는 거의 항상 fresh합니다(조회 시 catalog를 재생성). 따라서 <b>refresh 전후 숫자가 같으면 정상</b>이며, "이미 fresh했다"는 결론이지 실패가 아닙니다. 그래도 "조회 계층은 원천과 별도로 확인해야 한다"는 교훈은 동일합니다. 가능하면 Paimon/Iceberg native count, StarRocks count, BI metric을 3자 비교하세요.</div>
+  </div>
+
+  <!-- ============ R7 ============ -->
+  <div class="round" id="r7">
+    <div class="hd"><span class="rno ext">R7</span><span class="rtitle">small file 문제와 컴팩션 (확장)</span><span class="badge b-ext">확장 · 검증됨</span></div>
+    <div class="phase p-intent"><h4>의도 · 실제 운영 형태</h4>
+      스트리밍/빈번 commit은 작은 데이터 파일을 양산합니다. 파일이 수천 개가 되면 read planning/메타데이터 비용이 커져 쿼리가 느려집니다. 정기 컴팩션이 운영 유지보수 항목입니다. baseline 마트는 건드리지 않고 별도 <code>iceberg_lake.opsdemo</code> 테이블만 씁니다.</div>
+    <div class="phase p-inject"><h4>주입 (작은 commit 다수 → small file)</h4>
+<pre><code>./scripts/ops-r7-make-small-files.sh</code></pre>
+      <p>관찰 결과: 행 20개에 <b>데이터 파일 20개</b>(INSERT 1건 = commit 1개 = 작은 파일 1개) = read amplification.</p></div>
+    <div class="phase p-recover"><h4>복구 (컴팩션)</h4>
+<pre><code>./scripts/ops-r7-compact-small-files.sh      <span class="g"># rewrite_data_files → 파일 20 → 1</span>
+./scripts/ops-r7-reset-small-files.sh        <span class="c"># 데모 테이블 정리</span></code></pre>
+      <p>관찰 결과: 파일 수 <b>20 → 1</b>, 행 수는 그대로(20). 비용만 줄고 정답은 안 바뀜.</p></div>
+    <div class="phase p-point"><h4>포인트</h4>
+      작은 파일이 많다는 것은 데이터가 틀렸다는 뜻이 아니라 읽기 비용이 새고 있다는 뜻입니다. 컴팩션(<code>rewrite_data_files</code> / Paimon compaction)은 정답을 바꾸지 않고 비용을 줄이는 정기 유지보수입니다.</div>
+  </div>
+
+  <!-- ============ R8 ============ -->
+  <div class="round" id="r8">
+    <div class="hd"><span class="rno mentor">R8</span><span class="rtitle">Spark driver OOM</span><span class="badge b-mentor">멘토 시연</span></div>
+    <div class="phase p-intent"><h4>의도 · 실제 운영 형태</h4>
+      Spark driver/executor가 collect 과다·스큐·큰 셔플로 OOM 나는 상황. 데이터 손상이 아니라 컴퓨트 자원 장애이며, 진단은 로그/메트릭, 복구는 쿼리·자원 설정 수정입니다. <b>멘토 시연 전용</b>(학생 핸즈온 아님).</div>
+    <div class="phase p-inject"><h4>시연</h4>
+<pre><code>./scripts/ops-r8-spark-driver-oom-demo.sh    <span class="c"># --driver-memory 512m + 큰 collect()</span></code></pre>
+      <p>관찰 결과:</p>
+<pre><code><span class="r">: java.lang.OutOfMemoryError: Java heap space</span>
+<span class="c"># OOM은 이 spark-submit JVM(-Xmx) 안에 갇혀 다른 컨테이너에는 영향 없음</span></code></pre></div>
+    <div class="phase p-point"><h4>포인트</h4>
+      OOM 복구의 시작은 "메모리를 늘리자"가 아니라 "왜 그렇게 많이 필요했나"입니다. <code>collect()</code> 회피 / 집계·limit / 스큐를 먼저 의심합니다.</div>
+    <div class="callout warn"><b>안전 주의:</b> Mac mini는 컨테이너 메모리 무제한 + 16GB 공유입니다. <code>--driver-memory</code>로 캡을 건 Spark driver OOM만 안전하며, <b>캡 없는 OOM(특히 Flink TaskManager OOM)은 전체 스택을 위협하므로 주입하지 않습니다.</b></div>
+  </div>
+
+  <!-- ============ NOTE / PLAN B ============ -->
+  <h2 id="note">인시던트 노트 · 강사용 Plan B</h2>
+
+  <h3>각 라운드 인시던트 노트 (4줄 + R5는 1줄 추가)</h3>
+<pre><code>장애:
+관찰한 증상:
+확인한 증거:
+복구 명령/결과:
+<span class="c"># R5에서는 한 줄 추가</span>
+복구 기준점 후보 snapshot_id:</code></pre>
+  <p class="small">이번 주부터 과제는 "제출하고 끝"이 아니라 최종 발표 자료로 쌓아갑니다. 같은 공통 프로젝트라도 어떤 증거를 중요하게 봤고 어떤 운영 리스크를 발견했는지가 개인 포트폴리오의 차별점입니다.</p>
+
+  <h3>수업 중 문제 생겼을 때 — Plan B</h3>
+  <table>
+    <tr><th>증상</th><th>즉시 우회 / 근본 복구</th></tr>
+    <tr><td>R5에서 BI(Streamlit)가 빨간 KeyError</td><td>"이게 BI가 깨진 증거"로 활용하거나, <code>query-iceberg-tables.sh</code>/<code>query-bi-metrics.sh</code>의 0 출력으로 대체</td></tr>
+    <tr><td>R5 복구 트리거했는데 DAG fail</td><td>Flink 3잡 RUNNING 먼저 확인(<code>ops-flink-list-jobs.sh</code>) — validate_flink_streaming_jobs에서 막힘. 죽었으면 <code>run-flink-olist-paimon-streaming.sh all</code> 후 재트리거</td></tr>
+    <tr><td>R1에서 TM 올렸는데 잡이 안 돌아옴(FAILED)</td><td><code>run-flink-olist-paimon-streaming.sh all</code> 재제출. append 중복이 걱정되면 전체 리셋(topic+paimon) 후 재기동</td></tr>
+    <tr><td>R3 복구 후에도 produce 실패</td><td><code>kafka2</code>가 healthy인지 확인(<code>docker ps</code>). 토픽 <code>Isr: 1,2</code> 회복까지 잠시 대기 후 재시도</td></tr>
+    <tr><td>R4 후 ux 잡 복구 안 됨</td><td>반드시 <code>reset-olist-kafka-topics.sh</code>(poison 제거)부터. topic만 reset하고 paimon 안 하면 잡이 또 죽음 → 전체 리셋</td></tr>
+    <tr><td>R6에서 refresh 전후 숫자 동일</td><td>정상입니다. "cache가 이미 fresh"라는 뜻이고, serving 계층을 별도 확인했다는 결론은 같음</td></tr>
+    <tr><td>StarRocks 응답 없음 / CN down</td><td><code>docker compose up -d starrocks-fe starrocks-cn</code> 후 <code>SHOW COMPUTE NODES</code> Alive 확인</td></tr>
+    <tr><td>전 라운드 공통 — baseline 꼬임</td><td><code>ops-baseline-evidence.sh</code>로 어느 계층까지 정상인지 증거 수집 후 해당 계층만 리셋</td></tr>
+  </table>
+
+  <h3>마지막 정리</h3>
+<pre><code>./scripts/ops-baseline-evidence.sh           <span class="c"># 모든 계층 baseline 재확인</span></code></pre>
+
+  <footer>
+    DE5 Commerce Lakehouse · 6차시 운영 장애 대응 / 복구 드릴 · 모든 명령과 출력은 실제 스택에서 검증한 값입니다.<br>
+    실행 위치: <code>sessions/05-project-mvp</code> · 상세 텍스트 자료: <code>README.md</code> · <code>COMMAND_CARD.md</code> · <code>REAL_INCIDENT_MAP.md</code>
+  </footer>
+
+</main>
+</body>
+</html>
