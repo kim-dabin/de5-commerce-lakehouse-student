@@ -129,10 +129,8 @@
   <!-- ============ SETUP ============ -->
   <h2 id="setup">0. 기준 상태(Baseline) 만들기</h2>
   <p>수업 시작 전(또는 첫 10분)에 아래 상태를 맞춥니다. 모든 명령은 <code>sessions/05-project-mvp</code>에서 실행합니다.</p>
-<pre><code><span class="c"># Mac mini 접속 (Docker 실습은 Mac mini에서)</span>
-ssh mini
-cd /Users/dbkim/bootcamp/de5-commerce-lakehouse-student/sessions/05-project-mvp
-export PATH="/usr/local/bin:/Applications/Docker.app/Contents/Resources/bin:$PATH"
+<pre><code><span class="c"># 레포 루트에서 시작</span>
+cd sessions/05-project-mvp
 
 git pull origin main
 docker compose -f docker-compose.lite.yml up -d --build     <span class="c"># kafka, kafka2 포함 기동</span>
@@ -331,7 +329,7 @@ docker compose -f docker-compose.lite.yml logs --tail=120 flink-taskmanager</cod
 <span class="c"># OOM은 이 spark-submit JVM(-Xmx) 안에 갇혀 다른 컨테이너에는 영향 없음</span></code></pre></div>
     <div class="phase p-point"><h4>포인트</h4>
       OOM 복구의 시작은 "메모리를 늘리자"가 아니라 "왜 그렇게 많이 필요했나"입니다. <code>collect()</code> 회피 / 집계·limit / 스큐를 먼저 의심합니다.</div>
-    <div class="callout warn"><b>안전 주의:</b> Mac mini는 컨테이너 메모리 무제한 + 16GB 공유입니다. <code>--driver-memory</code>로 캡을 건 Spark driver OOM만 안전하며, <b>캡 없는 OOM(특히 Flink TaskManager OOM)은 전체 스택을 위협하므로 주입하지 않습니다.</b></div>
+    <div class="callout warn"><b>안전 주의:</b> 실행 환경은 컨테이너 메모리 제한이 없고 호스트 메모리를 공유합니다. <code>--driver-memory</code>로 캡을 건 Spark driver OOM만 안전하며, <b>캡 없는 OOM(특히 Flink TaskManager OOM)은 전체 스택을 위협하므로 주입하지 않습니다.</b></div>
   </div>
 
   <!-- ============ NOTE / 제출 ============ -->
