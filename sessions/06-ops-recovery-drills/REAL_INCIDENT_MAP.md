@@ -46,19 +46,20 @@
 
 > checkpoint는 복구 도구이지만, 깨진 metadata pointer나 잘못된 offset/state를 들고 있으면 실패를 반복시키는 원인이 됩니다.
 
-## R3. Kafka topic 설정 오류
+## R3. Kafka ISR 부족 (acks=all 쓰기 실패)
 
 실제 형태:
 
-- 운영 설정에서 retention 값과 ISR 설정처럼 필드 의미가 다른 값을 잘못 넣으면 producer가 실패할 수 있음.
-- 특히 `acks=all` producer는 in-sync replica 기준을 만족해야 ack를 받는다.
+- `acks=all` producer는 in-sync replica 수가 `min.insync.replicas` 이상이어야 ack를 받는다.
+- broker 장애/재기동, 디스크 문제, ISR 축소가 겹치면 `ISR < min.insync.replicas`가 되어 쓰기가 거부된다(`NotEnoughReplicasException`).
+- 데이터가 유실되는 게 아니라 "내구성 기준을 못 맞춰 쓰기를 막는" 안전장치다.
 
 수업 축소판:
 
-- 단일 broker topic에 `min.insync.replicas=2`를 넣어 실제 ISR 오설정 맥락을 보여준다.
-- 로컬 Kafka에서는 이 설정만으로 producer 실패가 항상 눈에 띄지 않을 수 있어, 수업 재현에서는 `max.message.bytes=64`도 함께 낮춘다.
-- producer가 topic write-path에서 실패하는 것을 확인하고, topic config를 복구한다.
-- 우리 실습 producer는 `acks=all`, `enable.idempotence=true`를 명시한다.
+- olist topic을 `RF=2 + min.insync.replicas=2`로 만든다(`reset-olist-kafka-topics.sh`). 즉 두 broker가 모두 살아 있어야 acks=all 쓰기가 성공한다.
+- 주입은 `kafka2`(두 번째 broker)를 정지시키는 것이다. ISR이 2→1로 줄어 `1 < 2`가 되고, `acks=all` producer는 `NotEnoughReplicasException`으로 실패한다. controller/leader는 `kafka`에 남아 consumer(Flink)는 기존 데이터를 계속 읽는다 — 즉 **읽기는 정상, 쓰기 경로만 막힌다.**
+- 우리 실습 producer는 `acks=all`, `enable.idempotence=true`, `retries=5`라서 재시도 후 delivery 실패를 보고하고 비0으로 종료한다.
+- 주의: 단일 broker(RF=1)에서는 `min.insync.replicas=2`를 걸어도 쓰기가 그냥 성공한다(ISR이 항상 1뿐이라 기준 자체가 적용되지 않음). 그래서 이 라운드는 **두 번째 broker가 반드시 필요**하다.
 - R1과 R3는 downstream에서 모두 "count가 멈춤"처럼 보일 수 있다. R1은 Kafka offset은 늘고 Flink가 못 따라가는 케이스이고, R3는 producer가 실패해 Kafka offset 자체가 늘지 않는 케이스다.
 
 핵심 문장:
