@@ -10,19 +10,22 @@
 
 실제 형태:
 
-- Flink 컨테이너가 노드 디스크/리소스 문제로 evict됨.
-- Kafka lag가 크게 튀었다가 노드 복구 후 줄어듦.
+- 컨테이너가 ephemeral-storage limit을 넘거나 노드가 DiskPressure 상태가 됨.
+- kubelet이 pod를 evict하고, TaskManager slot이 사라짐.
+- 소비가 멈춘 동안 입력이 계속 들어오면 backlog/lag가 증가함.
 - Flink job 상태만 보면 원인을 놓칠 수 있었고, 노드/컨테이너/로그/lag를 같이 봐야 했음.
 
 수업 축소판:
 
-- `flink-taskmanager`를 중지한다.
-- Flink UI, `flink list -r`, Paimon count를 같이 본다.
+- 로컬 Docker에는 kubelet eviction이 없으므로 `flink-taskmanager`를 직접 중지한다.
+- 이 stop은 "디스크가 찬 원인"을 재현하는 것이 아니라, "eviction 이후 TaskManager가 사라진 효과"를 흉내낸 것이다.
+- Flink UI, `flink list -r`, TaskManager 컨테이너 상태, Paimon count를 같이 본다.
+- lag/offset은 하나의 신호일 뿐이며, TaskManager 상태와 checkpoint/restart 로그, Paimon count와 교차검증해야 한다.
 - 복구 후 RUNNING만 보지 말고 count까지 다시 확인한다.
 
 핵심 문장:
 
-> Flink 장애가 항상 Flink 코드 문제는 아닙니다. 컨테이너가 뜨는 노드, 디스크, 리소스 상태가 원인일 수 있습니다.
+> 컴퓨트는 내 코드와 무관한 이유로 사라질 수 있습니다. 이번 랩은 eviction 이후 효과를 축소 재현하고, 실제 운영에서는 디스크/메모리/노드/쿼터 같은 오케스트레이션 리소스까지 같이 봐야 합니다.
 
 ## R2. checkpoint/last-state가 복구를 막은 경우
 

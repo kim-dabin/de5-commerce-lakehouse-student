@@ -90,7 +90,7 @@ Airflow UI는 `http://localhost:8080`, 기본 계정은 `admin / admin`입니다
 
 | 드릴 | 실제 운영에서의 형태 | 오늘 실습에서 보는 증상 |
 |---|---|---|
-| R1 TaskManager 장애 | 노드 디스크/리소스 문제로 Flink 컨테이너가 evict되고 lag가 급증 | TaskManager 중지, checkpoint/restart, count 재검증 |
+| R1 TaskManager 장애 | 디스크/리소스 압박으로 kubelet이 TaskManager pod를 evict하고, 입력이 계속 오면 backlog/lag가 증가 | 로컬에서는 TaskManager 중지로 eviction 이후 효과만 축소 재현, checkpoint/restart, count 재검증 |
 | R2 checkpoint/savepoint | 기존 checkpoint/last-state가 깨진 메타데이터를 계속 참조해 stateless 재기동이 필요했던 복구 | savepoint 복원은 이어읽기, 상태 폐기는 중복/누락 위험 |
 | R3 Kafka ISR 설정 오류 | retention 값을 다른 설정에 넣거나 ISR 설정을 잘못 넣어 acks=all producer가 실패 | `min.insync.replicas=2`를 단일 broker topic에 주입 |
 | R4 payload/schema 오류 | schemaless source에서 특정 batch부터 타입/필드가 달라져 parser 또는 sink가 실패 | 잘못된 `price` 타입 이벤트를 Kafka에 주입 |
