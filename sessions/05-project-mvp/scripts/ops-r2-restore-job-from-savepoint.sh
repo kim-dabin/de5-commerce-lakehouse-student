@@ -6,6 +6,7 @@ JOB_HINT="${1:-}"
 SAVEPOINT_PATH="${2:-}"
 SAVEPOINT_PATH_FILE="${SAVEPOINT_PATH_FILE:-.ops-r2-last-savepoint}"
 INIT_SQL="/workspace/labs/04-flink-paimon/00-init-flink-session.sql"
+INIT_SQL_HOST="labs/04-flink-paimon/00-init-flink-session.sql"
 
 if [[ -z "${SAVEPOINT_PATH}" && -f "${SAVEPOINT_PATH_FILE}" ]]; then
   SAVEPOINT_PATH="$(tr -d '[:space:]' < "${SAVEPOINT_PATH_FILE}")"
@@ -53,6 +54,13 @@ trap cleanup EXIT
 
 echo "Restoring ${JOB_HINT} from savepoint:"
 echo "  ${SAVEPOINT_PATH}"
+
+docker compose -f "${COMPOSE_FILE}" cp \
+  "${INIT_SQL_HOST}" \
+  "flink-jobmanager:${INIT_SQL}"
+docker compose -f "${COMPOSE_FILE}" cp \
+  "${RESTORE_FILE_HOST}" \
+  "flink-jobmanager:${RESTORE_FILE_CONTAINER}"
 
 docker compose -f "${COMPOSE_FILE}" exec -T --user flink flink-jobmanager \
   /opt/flink/bin/sql-client.sh \
