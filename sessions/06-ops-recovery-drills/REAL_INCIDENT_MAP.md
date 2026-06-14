@@ -46,7 +46,7 @@
 
 > checkpoint는 복구 도구이지만, 깨진 metadata pointer나 잘못된 offset/state를 들고 있으면 실패를 반복시키는 원인이 됩니다.
 
-## R3. Kafka ISR 부족 (acks=all 쓰기 실패) — 설정 오입력 사고에서 착안한 재현
+## R3. Kafka 토픽 내구성 설정 오류와 ISR 개념 데모
 
 실제 형태:
 

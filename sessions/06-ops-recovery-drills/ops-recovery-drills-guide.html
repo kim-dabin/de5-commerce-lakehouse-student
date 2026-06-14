@@ -110,7 +110,7 @@
       <li><a href="#setup">0. 기준 상태(Baseline)</a></li>
       <li><a href="#r1">R1 · TaskManager 장애</a></li>
       <li><a href="#r2">R2 · savepoint 재배포</a></li>
-      <li><a href="#r3">R3 · Kafka ISR 부족</a></li>
+      <li><a href="#r3">R3 · Kafka 토픽 내구성 설정 오류·ISR 데모</a></li>
       <li><a href="#r4">R4 · 잘못된 payload</a></li>
       <li><a href="#r5">R5 · Iceberg mart empty</a></li>
       <li><a href="#r5b">R5b · snapshot rollback (확장)</a></li>
@@ -203,7 +203,7 @@ docker compose -f docker-compose.lite.yml ps
 
   <!-- ============ R3 ============ -->
   <div class="round" id="r3">
-    <div class="hd"><span class="rno">R3</span><span class="rtitle">Kafka ISR 부족 (acks=all 쓰기 실패)</span><span class="badge b-ok">검증됨</span></div>
+    <div class="hd"><span class="rno">R3</span><span class="rtitle">Kafka 토픽 내구성 설정 오류와 ISR 개념 데모</span><span class="badge b-ok">검증됨</span></div>
     <div class="phase p-intent"><h4>의도 · 설정 오입력 사고에서 착안한 재현</h4>
       실제 사고 형태는 <b>토픽 설정값 오입력</b>입니다 — retention 같은 값을 <code>min.insync.replicas</code>에 잘못 넣어 값이 비정상적으로 커지면 <code>acks=all</code> producer가 기준을 못 채워 쓰기가 막힙니다. broker 장애·replica 지연으로 ISR이 줄어도 같은 증상(<code>NotEnoughReplicasException</code>)이 납니다. 데이터 유실이 아니라 "내구성 기준을 못 맞춰 쓰기를 막는" 안전장치죠. <b>이 라운드는 실제 사고 그대로가 아니라</b>, 그 원리(<code>ISR &lt; min.insync.replicas</code>)를 로컬에서 보기 쉽게 broker를 내려 만든 <b>재현 데모</b>입니다.</div>
     <div class="phase p-intent"><h4>전제 확인</h4>
