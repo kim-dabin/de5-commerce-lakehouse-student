@@ -125,6 +125,57 @@
 
 > 조회 계층이 stale하다고 해서 곧바로 원천 데이터 유실이라고 판단하면 안 됩니다.
 
+## R5b. (확장) snapshot rollback — rebuild vs rollback
+
+실제 형태:
+
+- bad write/배치 오류로 serving table이 깨졌을 때, 원천에서 다시 만들 수도(rebuild) 있고, 직전 정상 snapshot으로 포인터를 되돌릴 수도(rollback) 있다.
+- 둘은 트레이드오프가 다르다. rebuild는 권위 있는 정답이지만 느리고 원천이 정상이어야 한다. rollback은 즉시지만 그 snapshot 이후 commit을 전부 폐기한다.
+
+수업 축소판:
+
+- R5로 mart를 empty로 만든 뒤, find-recovery-point가 준 `RECOVERY_POINT_CANDIDATE` snapshot_id로 `ops-r5b-rollback-iceberg-mart.sh`를 실행한다.
+- Iceberg `system.rollback_to_snapshot`으로 current 포인터가 직전 759행 snapshot으로 돌아가고, count가 즉시 복구된다. StarRocks도 같은 값을 본다.
+- "복구 기준점을 찾는다(R5)" → "되돌릴지 결정하고 실행한다(R5b)"로 운영 의사결정 순서를 보여준다.
+
+핵심 문장:
+
+> rollback은 빠른 전술적 복구, rebuild는 원천 기준의 권위 있는 복구입니다. 어느 쪽이 맞는지는 "그 snapshot 이후 데이터를 버려도 되는가"로 갈립니다.
+
+## R7. (확장) small file 문제와 컴팩션
+
+실제 형태:
+
+- 스트리밍/빈번 commit은 작은 데이터 파일을 양산한다. 파일이 수천 개가 되면 read planning/메타데이터 비용이 커지고 쿼리가 느려진다.
+- 정기 컴팩션(rewrite_data_files / Paimon compaction)이 운영 유지보수 항목이다.
+
+수업 축소판:
+
+- `iceberg_lake.opsdemo` 데모 테이블에 INSERT 1건씩 20번 → commit 20개 → 작은 파일 20개. `.files` 메타데이터로 파일 수/크기를 본다(행은 20개뿐인데 파일도 20개).
+- `rewrite_data_files`로 컴팩션하면 파일 수가 급감하고(예: 20→1) 행 수는 그대로다.
+- baseline 마트는 건드리지 않는다(별도 namespace).
+
+핵심 문장:
+
+> 작은 파일이 많다는 것은 데이터가 틀렸다는 뜻이 아니라, 읽기 비용이 새고 있다는 뜻입니다. 컴팩션은 정답을 바꾸지 않고 비용을 줄입니다.
+
+## R8. (멘토 시연) compute OOM
+
+실제 형태:
+
+- Spark driver/executor가 collect 과다·스큐·큰 셔플로 OOM 나거나, Flink TaskManager가 state/메모리 압박으로 죽는다.
+- 데이터 손상이 아니라 컴퓨트 자원 장애이며, 진단은 로그/메트릭, 복구는 쿼리·자원 설정 수정이다.
+
+수업 축소판:
+
+- `--driver-memory 512m`로 작게 준 Spark job이 큰 결과를 `collect()`해 driver heap을 터뜨린다(`java.lang.OutOfMemoryError`).
+- OOM은 이 spark-submit JVM(-Xmx) 안에 갇혀 다른 컨테이너에 번지지 않는다.
+- 멘토 시연 전용: Mac mini는 컨테이너 메모리 무제한 + 16GB 공유라, 캡 없는 OOM(특히 Flink TM)은 전체 스택을 위협하므로 학생 핸즈온으로 하지 않는다.
+
+핵심 문장:
+
+> OOM 복구의 시작은 "메모리를 늘리자"가 아니라 "왜 그렇게 많이 필요했나"입니다. collect/스큐/셔플을 먼저 의심합니다.
+
 ## Blind drill 후보. Kafka lag가 거짓말하는 경우
 
 실제 형태:

@@ -96,6 +96,9 @@ Airflow UI는 `http://localhost:8080`, 기본 계정은 `admin / admin`입니다
 | R4 payload/schema 오류 | schemaless source에서 특정 batch부터 타입/필드가 달라져 parser 또는 sink가 실패 | 잘못된 `price` 타입 이벤트를 Kafka에 주입하고 Kafka raw payload/Flink log 확인 |
 | R5 Iceberg mart empty/누락 | DAG는 성공처럼 보였지만 Iceberg mart가 비어 BI에서 장애가 드러난 사건 | Iceberg mart 하나를 drop하지 않고 empty로 만들고, snapshot/time travel로 복구 기준점 후보를 확인 |
 | R6 metadata/cache stale | native table은 정상인데 StarRocks/Iceberg-compatible view가 최신 상태를 못 보는 문제 | R5 이후 StarRocks external metadata refresh 전후 비교 |
+| R5b (확장) snapshot rollback | bad write 이후 직전 정상 snapshot으로 즉시 되돌려 serving을 복구 | R5 empty 후 find-recovery-point가 준 snapshot_id로 rollback_to_snapshot 실행 → count 즉시 복구 (rebuild와 대비) |
+| R7 (확장) small file 문제 | 스트리밍/빈번 commit이 작은 파일을 양산해 read amplification·메타데이터 증가 | opsdemo 데모 테이블에 small commit 다수 → .files로 파일 수 확인 → rewrite_data_files 컴팩션 |
+| R8 (멘토 시연) compute OOM | collect 과다/스큐로 driver·executor가 OOM | --driver-memory 작게 준 Spark job이 collect()로 driver heap OOM (JVM 내 격리, 데이터 불변) |
 
 특히 R2는 중요합니다. 운영에서는 checkpoint가 항상 정답이 아닙니다. checkpoint가 이미 잘못된 metadata pointer나 잘못된 offset/state를 들고 있으면, "이어받기"가 복구가 아니라 실패 반복이 됩니다. 이때는 상태를 버리고 stateless로 다시 시작한 뒤, 원천에서 재처리하거나 staging 검증 후 cutover하는 판단이 필요합니다. 이번 수업에서는 clean savepoint 복구는 전원 핸즈온으로, 깨진 savepoint/path 실패는 멘토 시연으로 분리합니다.
 
