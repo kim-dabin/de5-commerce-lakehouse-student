@@ -24,10 +24,10 @@ from airflow.operators.python import PythonOperator
 
 
 FLINK_OVERVIEW_URL = "http://flink-jobmanager:8081/jobs/overview"
-EXPECTED_FLINK_JOB_HINTS = (
-    "ingest-ux-events",
-    "ingest-review-current",
-    "ingest-order-current",
+EXPECTED_FLINK_JOB_HINT_GROUPS = (
+    ("ingest-ux-events", "ux_events_bronze"),
+    ("ingest-review-current", "review_current"),
+    ("ingest-order-current", "order_current"),
 )
 
 STARROCKS_SESSION_PREFIX = "SET new_planner_optimize_timeout = 30000;\n"
@@ -142,15 +142,22 @@ def validate_flink_streaming_jobs() -> None:
         )
 
     running_job_names = [str(job.get("name", "")) for job in running_jobs]
-    missing = [
-        hint
-        for hint in EXPECTED_FLINK_JOB_HINTS
-        if not any(hint in job_name for job_name in running_job_names)
-    ]
+    missing = []
+    for hints in EXPECTED_FLINK_JOB_HINT_GROUPS:
+        if not any(
+            hint in job_name
+            for hint in hints
+            for job_name in running_job_names
+        ):
+            missing.append("/".join(hints))
 
     if missing:
         cli_output = run_shell("docker exec de5-flink-jobmanager /opt/flink/bin/flink list -r || true")
-        still_missing = [hint for hint in missing if hint not in cli_output]
+        still_missing = [
+            hint_group
+            for hint_group in missing
+            if not any(hint in cli_output for hint in hint_group.split("/"))
+        ]
         if still_missing:
             raise AirflowException(
                 "RUNNING jobs exist, but expected Olist job names were not found: "
