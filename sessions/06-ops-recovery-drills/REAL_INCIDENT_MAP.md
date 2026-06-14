@@ -95,12 +95,15 @@
 수업 축소판:
 
 - Iceberg mart 하나를 drop하지 않고 비운 상태로 만든다.
+- `snapshots`와 time travel 조회로 문제 직전 정상 snapshot 후보를 찾는다.
 - Airflow DAG를 다시 돌려 mart를 재생성하고, `query_iceberg_tables`와 `validate_bi_metric_counts` 로그로 복구를 확인한다.
 - 현재 프로젝트에는 이 실무 사고를 반영해 BI metric validation task를 넣어 두었다. 즉, 과거라면 방치됐을 문제를 지금은 DAG 안에서 잡게 만든 구조다.
 
 핵심 문장:
 
 > DAG가 초록이라는 말은 BI가 정상이라는 뜻이 아닙니다. output table count와 freshness가 검증돼야 합니다.
+
+> Time travel은 "멋있는 과거 조회"가 아니라, 어느 snapshot까지 정상으로 볼 수 있는지 찾는 복구 기준점 도구입니다.
 
 ## R6. StarRocks external metadata/cache stale
 

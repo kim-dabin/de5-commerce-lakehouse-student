@@ -23,12 +23,14 @@
    - R3 Kafka ISR 설정 오류
    - R4 잘못된 payload
    - R5 Iceberg mart empty/누락
+   - R5C snapshot/time travel 복구 기준점
    - R6 StarRocks metadata refresh
 2. 장애 전 정상 기준
 3. 장애 후 관찰한 증상
 4. 내가 본 증거 3개
    - Kafka / Flink / Paimon / Iceberg / StarRocks / BI / Airflow 중 해당되는 계층
 5. 복구 명령과 복구 후 증거
+   - R5를 선택했다면 복구 기준점 후보 `snapshot_id`도 함께 기록
 6. 재발 방지 또는 개선 아이디어 1개
 7. 최종 발표에서 말할 한 문장
 

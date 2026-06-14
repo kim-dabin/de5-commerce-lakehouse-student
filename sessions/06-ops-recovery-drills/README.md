@@ -78,7 +78,7 @@ Airflow UI는 `http://localhost:8080`, 기본 계정은 `admin / admin`입니다
 | 20:58-21:08 | R3 Kafka ISR 설정 오류 | producer 실패가 코드 문제가 아니라 topic 설정 문제일 수 있는가? |
 | 21:08-21:15 | 휴식 | 로그/캡처 정리 |
 | 21:15-21:28 | R4 잘못된 payload | Kafka에 들어간 메시지는 항상 downstream에 안전한가? |
-| 21:28-21:43 | R5 Iceberg mart 누락 | BI 장애를 Airflow DAG로 어떻게 복구하는가? |
+| 21:28-21:43 | R5 Iceberg mart 누락 | BI 장애를 Airflow DAG로 어떻게 복구하고, 어느 snapshot을 복구 기준점으로 잡는가? |
 | 21:43-21:53 | R6 StarRocks metadata refresh | 데이터는 있는데 조회 계층만 stale할 수 있는가? |
 | 21:53-22:00 | 정리 | 최종 발표용 장애 대응 슬라이드 선택 |
 
@@ -94,7 +94,7 @@ Airflow UI는 `http://localhost:8080`, 기본 계정은 `admin / admin`입니다
 | R2 checkpoint/savepoint | 기존 checkpoint/last-state가 깨진 메타데이터를 계속 참조해 stateless 재기동이 필요했던 복구 | 학생은 clean savepoint KEEP, 멘토는 bad savepoint DISCARD 판단 시연 |
 | R3 Kafka ISR 설정 오류 | retention 값을 다른 설정에 넣거나 ISR 설정을 잘못 넣어 acks=all producer가 실패 | `acks=all` producer 전제에서 `min.insync.replicas=2`를 단일 broker topic에 주입 |
 | R4 payload/schema 오류 | schemaless source에서 특정 batch부터 타입/필드가 달라져 parser 또는 sink가 실패 | 잘못된 `price` 타입 이벤트를 Kafka에 주입하고 Kafka raw payload/Flink log 확인 |
-| R5 Iceberg mart empty/누락 | DAG는 성공처럼 보였지만 Iceberg mart가 비어 BI에서 장애가 드러난 사건 | Iceberg mart 하나를 drop하지 않고 empty로 만들어 DAG 검증으로 재생성/검출 |
+| R5 Iceberg mart empty/누락 | DAG는 성공처럼 보였지만 Iceberg mart가 비어 BI에서 장애가 드러난 사건 | Iceberg mart 하나를 drop하지 않고 empty로 만들고, snapshot/time travel로 복구 기준점 후보를 확인 |
 | R6 metadata/cache stale | native table은 정상인데 StarRocks/Iceberg-compatible view가 최신 상태를 못 보는 문제 | R5 이후 StarRocks external metadata refresh 전후 비교 |
 
 특히 R2는 중요합니다. 운영에서는 checkpoint가 항상 정답이 아닙니다. checkpoint가 이미 잘못된 metadata pointer나 잘못된 offset/state를 들고 있으면, "이어받기"가 복구가 아니라 실패 반복이 됩니다. 이때는 상태를 버리고 stateless로 다시 시작한 뒤, 원천에서 재처리하거나 staging 검증 후 cutover하는 판단이 필요합니다. 이번 수업에서는 clean savepoint 복구는 전원 핸즈온으로, 깨진 savepoint/path 실패는 멘토 시연으로 분리합니다.
@@ -108,6 +108,12 @@ Airflow UI는 `http://localhost:8080`, 기본 계정은 `admin / admin`입니다
 관찰한 증상:
 확인한 증거:
 복구 명령/결과:
+```
+
+R5에서는 한 줄을 더 남깁니다.
+
+```text
+복구 기준점 후보 snapshot_id:
 ```
 
 제출 템플릿은 [INCIDENT_NOTE_TEMPLATE.md](./INCIDENT_NOTE_TEMPLATE.md)를 사용합니다.
