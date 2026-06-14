@@ -92,7 +92,7 @@ Airflow UI는 `http://localhost:8080`, 기본 계정은 `admin / admin`입니다
 |---|---|---|
 | R1 TaskManager 장애 | 디스크/리소스 압박으로 kubelet이 TaskManager pod를 evict하고, 입력이 계속 오면 backlog/lag가 증가 | 로컬에서는 TaskManager 중지로 eviction 이후 효과만 축소 재현, checkpoint/restart, count 재검증 |
 | R2 checkpoint/savepoint | 기존 checkpoint/last-state가 깨진 메타데이터를 계속 참조해 stateless 재기동이 필요했던 복구 | 학생은 clean savepoint KEEP, 멘토는 bad savepoint DISCARD 판단 시연 |
-| R3 Kafka ISR 부족 | `min.insync.replicas` 기준을 못 채워(broker 장애/ISR 축소) `acks=all` producer가 `NotEnoughReplicasException`으로 실패 | olist topic을 `RF=2 + min.insync.replicas=2`로 두고 `kafka2`를 정지 → ISR 2→1 → acks=all producer 실패. 읽기는 정상, 쓰기만 막힘 |
+| R3 Kafka ISR 부족 | 토픽 설정값 오입력으로 `min.insync.replicas`가 잘못 커지거나, broker 장애·ISR 축소로 기준을 못 채워 `acks=all` producer가 `NotEnoughReplicasException`으로 실패 | (설정 오입력 사고에서 착안한 **재현**) olist topic `RF=2 + min.insync.replicas=2`에서 `kafka2` 정지 → ISR 2→1 → acks=all producer 실패. 읽기는 정상, 쓰기만 막힘 |
 | R4 payload/schema 오류 | schemaless source에서 특정 batch부터 타입/필드가 달라져 parser 또는 sink가 실패 | 잘못된 `price` 타입 이벤트를 Kafka에 주입하고 Kafka raw payload/Flink log 확인 |
 | R5 Iceberg mart empty/누락 | DAG는 성공처럼 보였지만 Iceberg mart가 비어 BI에서 장애가 드러난 사건 | Iceberg mart 하나를 drop하지 않고 empty로 만들고, snapshot/time travel로 복구 기준점 후보를 확인 |
 | R6 metadata/cache stale | native table은 정상인데 StarRocks/Iceberg-compatible view가 최신 상태를 못 보는 문제 | R5 이후 StarRocks external metadata refresh 전후 비교 |

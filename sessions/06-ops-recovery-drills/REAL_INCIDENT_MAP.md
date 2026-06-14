@@ -46,16 +46,17 @@
 
 > checkpoint는 복구 도구이지만, 깨진 metadata pointer나 잘못된 offset/state를 들고 있으면 실패를 반복시키는 원인이 됩니다.
 
-## R3. Kafka ISR 부족 (acks=all 쓰기 실패)
+## R3. Kafka ISR 부족 (acks=all 쓰기 실패) — 설정 오입력 사고에서 착안한 재현
 
 실제 형태:
 
-- `acks=all` producer는 in-sync replica 수가 `min.insync.replicas` 이상이어야 ack를 받는다.
-- broker 장애/재기동, 디스크 문제, ISR 축소가 겹치면 `ISR < min.insync.replicas`가 되어 쓰기가 거부된다(`NotEnoughReplicasException`).
-- 데이터가 유실되는 게 아니라 "내구성 기준을 못 맞춰 쓰기를 막는" 안전장치다.
+- 원래 사고 형태는 **토픽 설정값 오입력**이다. retention 같은 값을 엉뚱하게 `min.insync.replicas`에 넣는 "설정 한 줄 사고"로 이 값이 비정상적으로 커지면, `acks=all` producer가 기준을 못 채워 쓰기가 막힌다(`NotEnoughReplicasException`).
+- 그 외에도 broker 장애/재기동, 디스크 문제, replica 지연으로 ISR이 줄어도 `ISR < min.insync.replicas`가 되어 같은 증상이 난다.
+- 어느 경우든 데이터 유실이 아니라 "내구성 기준을 못 맞춰 쓰기를 막는" 안전장치다.
 
-수업 축소판:
+수업 축소판 (실제 사고 그대로가 아니라, 그 원리를 로컬에서 보기 쉽게 만든 **재현 데모**):
 
+- 원래 사고는 설정값 오입력이지만, 단일 broker나 완전복제(ISR=RF) 상태에서는 `min.insync.replicas`를 잘못 키워도 쓰기가 그냥 성공한다(실측). 즉 설정 오입력을 그대로 두면 평소엔 안 터져 신뢰성 있게 재현되지 않는다. 그래서 broker를 내려 `ISR < min.insync.replicas`를 직접 만든다.
 - olist topic을 `RF=2 + min.insync.replicas=2`로 만든다(`reset-olist-kafka-topics.sh`). 즉 두 broker가 모두 살아 있어야 acks=all 쓰기가 성공한다.
 - 주입은 `kafka2`(두 번째 broker)를 정지시키는 것이다. ISR이 2→1로 줄어 `1 < 2`가 되고, `acks=all` producer는 `NotEnoughReplicasException`으로 실패한다. controller/leader는 `kafka`에 남아 consumer(Flink)는 기존 데이터를 계속 읽는다 — 즉 **읽기는 정상, 쓰기 경로만 막힌다.**
 - 우리 실습 producer는 `acks=all`, `enable.idempotence=true`, `retries=5`라서 재시도 후 delivery 실패를 보고하고 비0으로 종료한다.
