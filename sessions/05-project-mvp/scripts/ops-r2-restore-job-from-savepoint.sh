@@ -4,10 +4,16 @@ set -euo pipefail
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.lite.yml}"
 JOB_HINT="${1:-}"
 SAVEPOINT_PATH="${2:-}"
+SAVEPOINT_PATH_FILE="${SAVEPOINT_PATH_FILE:-.ops-r2-last-savepoint}"
 INIT_SQL="/workspace/labs/04-flink-paimon/00-init-flink-session.sql"
 
+if [[ -z "${SAVEPOINT_PATH}" && -f "${SAVEPOINT_PATH_FILE}" ]]; then
+  SAVEPOINT_PATH="$(tr -d '[:space:]' < "${SAVEPOINT_PATH_FILE}")"
+fi
+
 if [[ -z "${JOB_HINT}" || -z "${SAVEPOINT_PATH}" ]]; then
-  echo "Usage: $0 <ingest-ux-events|ingest-review-current|ingest-order-current> <savepoint-path>" >&2
+  echo "Usage: $0 <ingest-ux-events|ingest-review-current|ingest-order-current> [savepoint-path]" >&2
+  echo "If savepoint-path is omitted, ${SAVEPOINT_PATH_FILE} is used." >&2
   exit 2
 fi
 

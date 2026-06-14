@@ -38,7 +38,8 @@
 
 수업 축소판:
 
-- savepoint로 멈춘 뒤 같은 savepoint에서 복구한다.
+- 학생 핸즈온은 savepoint로 멈춘 뒤 같은 savepoint에서 복구하는 KEEP 경로를 보여준다.
+- 멘토 시연은 잘못된 savepoint path로 restore가 실패하는 DISCARD 판단을 보여준다.
 - 이어받기 자체는 좋은 패턴이지만, "이어받을 state가 신뢰 가능한가?"라는 판단이 별도로 필요하다는 점을 설명한다.
 
 핵심 문장:
@@ -56,6 +57,8 @@
 
 - 단일 broker topic에 `min.insync.replicas=2`를 넣는다.
 - producer가 실패하는 것을 확인하고, topic config를 복구한다.
+- 이 주입은 producer가 `acks=all`일 때 의미가 있다. 우리 실습 producer는 `acks=all`, `enable.idempotence=true`를 명시한다.
+- R1과 R3는 downstream에서 모두 "count가 멈춤"처럼 보일 수 있다. R1은 Kafka offset은 늘고 Flink가 못 따라가는 케이스이고, R3는 producer가 실패해 Kafka offset 자체가 늘지 않는 케이스다.
 
 핵심 문장:
 
@@ -73,6 +76,8 @@
 
 - `price`가 숫자가 아닌 UX event를 Kafka에 주입한다.
 - Flink log와 Paimon count를 보며 "Kafka에 들어갔다"와 "Paimon에 정상 적재됐다"가 다름을 확인한다.
+- 현재 UX job은 `price`를 `DECIMAL`로 엄격히 `CAST`하므로 bad record가 Paimon row/raw_json으로 남기 전에 Flink operator에서 실패할 수 있다.
+- 따라서 이 라운드의 primary evidence는 Kafka raw payload와 Flink log이다. production fix는 전체 리셋이 아니라 bad record quarantine 또는 tolerant parsing이다.
 
 핵심 문장:
 
@@ -89,7 +94,7 @@
 
 수업 축소판:
 
-- Iceberg mart 하나를 drop하거나 비운 상태로 만든다.
+- Iceberg mart 하나를 drop하지 않고 비운 상태로 만든다.
 - Airflow DAG를 다시 돌려 mart를 재생성하고, `query_iceberg_tables`와 `validate_bi_metric_counts` 로그로 복구를 확인한다.
 - 현재 프로젝트에는 이 실무 사고를 반영해 BI metric validation task를 넣어 두었다. 즉, 과거라면 방치됐을 문제를 지금은 DAG 안에서 잡게 만든 구조다.
 
@@ -107,6 +112,8 @@
 수업 축소판:
 
 - Iceberg mart를 재생성한 뒤 StarRocks external metadata refresh를 실행한다.
+- 이 라운드는 별도의 파괴 주입이 아니라 R5 이후 serving 계층을 확인하는 post-check이다.
+- StarRocks external catalog는 자동 갱신될 수 있으므로 refresh 전후 count가 같을 수 있다. 이 경우도 "이미 fresh했다"는 결론이지 라운드 실패는 아니다.
 - 데이터 파일/REST catalog/StarRocks cache가 서로 다른 계층이라는 점을 설명한다.
 
 핵심 문장:
