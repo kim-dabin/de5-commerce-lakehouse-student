@@ -13,6 +13,7 @@ __pycache__/
 outputs/
 *.log
 *.tmp
+.ops-r2-last-savepoint
 Downloads/
 data/raw/olist/*.csv
 data/derived/olist/
