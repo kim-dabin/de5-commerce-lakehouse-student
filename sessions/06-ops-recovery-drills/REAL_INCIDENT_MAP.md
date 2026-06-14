@@ -81,7 +81,7 @@
 
 핵심 문장:
 
-> raw_json은 낭비가 아니라 장애 분석용 증거입니다.
+> raw payload와 raw_json 설계는 낭비가 아니라 장애 분석용 증거입니다. 다만 엄격한 parser 앞에서 실패한 레코드는 sink table에 남기 전에 멈출 수 있으므로 Kafka 원문과 Flink log를 같이 봐야 합니다.
 
 ## R5. Iceberg mart empty / dependency 누락
 

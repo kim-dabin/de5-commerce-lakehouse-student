@@ -91,6 +91,7 @@ UX append job 하나만 savepoint로 멈춥니다.
 ```
 
 스크립트가 savepoint 경로를 `.ops-r2-last-savepoint`에 저장합니다. 그래서 restore 명령에는 path를 직접 붙이지 않아도 됩니다.
+Flink UI에서 job 이름이 `insert-into_paimon_lake.bronze.ux_events_bronze`처럼 보여도, 스크립트가 `ux_events_bronze` 테이블명으로 같이 매칭합니다.
 
 ```bash
 ./scripts/ops-r2-restore-job-from-savepoint.sh ingest-ux-events

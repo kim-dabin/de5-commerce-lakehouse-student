@@ -6,13 +6,29 @@ JOB_HINT="${1:-ingest-ux-events}"
 SAVEPOINT_DIR="${SAVEPOINT_DIR:-file:///opt/flink/savepoints}"
 SAVEPOINT_PATH_FILE="${SAVEPOINT_PATH_FILE:-.ops-r2-last-savepoint}"
 
+case "${JOB_HINT}" in
+  ingest-ux-events|ux|append)
+    JOB_PATTERN="ingest-ux-events|ux_events_bronze"
+    ;;
+  ingest-review-current|review|review_current)
+    JOB_PATTERN="ingest-review-current|review_current"
+    ;;
+  ingest-order-current|order|order_current)
+    JOB_PATTERN="ingest-order-current|order_current"
+    ;;
+  *)
+    JOB_PATTERN="${JOB_HINT}"
+    ;;
+esac
+
 LIST_OUTPUT="$(docker compose -f "${COMPOSE_FILE}" exec -T flink-jobmanager /opt/flink/bin/flink list -r)"
 echo "${LIST_OUTPUT}"
 
-JOB_ID="$(printf '%s\n' "${LIST_OUTPUT}" | awk -v hint="${JOB_HINT}" '$0 ~ hint {print $4; exit}')"
+JOB_ID="$(printf '%s\n' "${LIST_OUTPUT}" | awk -v pattern="${JOB_PATTERN}" '$0 ~ pattern {print $4; exit}')"
 
 if [[ -z "${JOB_ID}" ]]; then
   echo "Could not find a RUNNING job matching: ${JOB_HINT}" >&2
+  echo "Matched with pattern: ${JOB_PATTERN}" >&2
   echo "Usage: $0 [ingest-ux-events|ingest-review-current|ingest-order-current]" >&2
   exit 1
 fi
