@@ -30,7 +30,7 @@ import sys
 data = json.load(sys.stdin)
 for job in data.get("jobs", []):
     if job.get("state") == "RUNNING":
-        print(f"{job[\"jid\"]} : {job.get(\"name\", \"\")} ({job[\"state\"]})")
+        print("{} : {} ({})".format(job["jid"], job.get("name", ""), job["state"]))
 '
 
 JOB_ID="$(
