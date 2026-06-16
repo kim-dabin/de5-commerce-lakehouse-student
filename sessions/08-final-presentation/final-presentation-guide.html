@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DE5 최종 발표 안내</title>
+  <style>
+    :root {
+      --bg: #f8f4ec;
+      --paper: #fffdf8;
+      --ink: #172033;
+      --muted: #536172;
+      --line: #dbe2ea;
+      --soft: #eef3f6;
+      --teal: #0f9488;
+      --teal-dark: #0f766e;
+      --teal-soft: #e4f4f2;
+      --orange: #d97706;
+      --orange-dark: #b45309;
+      --orange-soft: #fff4df;
+      --green: #2f8f3e;
+      --green-soft: #e8f4e9;
+      --blue: #2563eb;
+      --blue-soft: #e8f0ff;
+      --purple: #6d28d9;
+      --purple-soft: #f0eaff;
+      --red: #b42318;
+      --red-soft: #fff0ed;
+      --navy: #111827;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.62;
+    }
+
+    .topbar {
+      height: 7px;
+      background: linear-gradient(90deg, var(--teal-dark), var(--orange));
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 44px 28px 84px;
+    }
+
+    .eyebrow {
+      color: var(--teal-dark);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 10px 0 14px;
+      font-size: clamp(34px, 5vw, 54px);
+      line-height: 1.14;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 52px 0 16px;
+      font-size: 30px;
+      line-height: 1.24;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 24px 0 10px;
+      font-size: 20px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    strong { color: var(--ink); }
+
+    code {
+      font-family: var(--mono);
+      background: rgba(15, 118, 110, .08);
+      border: 1px solid rgba(15, 118, 110, .16);
+      border-radius: 5px;
+      padding: 1px 5px;
+      font-size: .92em;
+      color: var(--teal-dark);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 22px;
+      align-items: stretch;
+      margin-top: 28px;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      box-shadow: 0 10px 24px rgba(23, 32, 51, .06);
+    }
+
+    .claim {
+      background: linear-gradient(135deg, var(--teal-soft), #fffdf8);
+      border-color: #b8dfda;
+    }
+
+    .claim p {
+      color: var(--ink);
+      font-size: 20px;
+      font-weight: 760;
+    }
+
+    .summary-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .summary-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .dot {
+      flex: 0 0 8px;
+      width: 8px;
+      height: 8px;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: var(--teal);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 22px 0 8px;
+    }
+
+    .node {
+      min-height: 84px;
+      border-radius: 8px;
+      padding: 14px 12px;
+      border: 1px solid rgba(15, 118, 110, .18);
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    .node:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-weight: 800;
+      z-index: 2;
+    }
+
+    .node strong {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .node span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pipeline {
+      background: var(--orange-soft);
+      border-color: #f3c983;
+    }
+
+    .section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 26px;
+      box-shadow: 0 10px 22px rgba(23, 32, 51, .05);
+      margin-top: 22px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      background: #fbfdff;
+      min-height: 158px;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .tag.teal { background: var(--teal-dark); }
+    .tag.orange { background: var(--orange-dark); }
+    .tag.blue { background: var(--blue); }
+    .tag.purple { background: var(--purple); }
+    .tag.green { background: var(--green); }
+    .tag.red { background: var(--red); }
+
+    .do-dont {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 12px;
+    }
+
+    .ok {
+      background: var(--green-soft);
+      border-color: #b9dfc0;
+    }
+
+    .warn {
+      background: var(--red-soft);
+      border-color: #ffc6bd;
+    }
+
+    ul, ol {
+      margin: 10px 0 0;
+      padding-left: 20px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    li { margin: 8px 0; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      margin-top: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 15px;
+    }
+
+    th {
+      background: #eef5f7;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .callout {
+      margin-top: 20px;
+      border-radius: 8px;
+      padding: 18px 20px;
+      border: 1px solid #f3d38a;
+      background: #fff8df;
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 760;
+    }
+
+    .script {
+      background: var(--navy);
+      color: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 15px;
+      line-height: 1.72;
+      white-space: pre-wrap;
+      margin-top: 14px;
+      font-family: var(--sans);
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .check {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 13px 14px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .check strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .footer-note {
+      margin-top: 38px;
+      padding: 18px 20px;
+      border-radius: 8px;
+      border: 1px solid #c5d9e5;
+      background: #f0f7fb;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .grid-2,
+      .grid-3,
+      .do-dont,
+      .checklist {
+        grid-template-columns: 1fr;
+      }
+
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .node:not(:last-child)::after {
+        content: "↓";
+        right: 50%;
+        top: auto;
+        bottom: -16px;
+        transform: translateX(50%);
+      }
+    }
+
+    @media print {
+      body { background: #fff; }
+      main { max-width: none; padding: 24px; }
+      .panel, .section, .card { box-shadow: none; }
+      .topbar { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar"></div>
+  <main>
+    <header>
+      <div class="eyebrow">DE5 Live Portfolio Study · Final Presentation Guide</div>
+      <h1>최종 발표 안내 — 공통 프로젝트를 개인 포트폴리오로 정리하기</h1>
+      <p>
+        이번 최종 발표는 각자 완전히 다른 데이터를 새로 찾는 방식이 아니라,
+        우리가 함께 만든 <strong>Olist 기반 실무형 데이터 파이프라인</strong>을 각자의 관점으로 해석하고 검증해 포트폴리오로 완성하는 방식입니다.
+      </p>
+    </header>
+
+    <section class="hero">
+      <div class="panel claim">
+        <p>
+          공통 주제 / 공통 데이터 / 공통 파이프라인을 기반으로 하되,
+          최종 발표는 각자의 비즈니스 질문, 지표 해석, 운영 검증, 개선 로드맵으로 차별화합니다.
+        </p>
+        <div class="summary-list">
+          <div class="summary-item"><span class="dot"></span><span><strong>공통 기반:</strong> Olist 커머스 데이터 + 사용자 행동 이벤트</span></div>
+          <div class="summary-item"><span class="dot"></span><span><strong>공통 파이프라인:</strong> Kafka → Flink → Paimon → Spark/Iceberg → StarRocks/BI → Airflow</span></div>
+          <div class="summary-item"><span class="dot"></span><span><strong>개인화 지점:</strong> 질문, 지표, 증거, 리스크, 개선 방향</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>최종 발표의 핵심 문장</h3>
+        <p>
+          “저는 이 파이프라인을 실행했습니다”가 아니라,
+          <strong>“이 파이프라인이 어떤 질문에 답하고, 어디까지 정상인지 어떤 증거로 확인했으며, 남은 운영 갭을 어떻게 개선할지 설명할 수 있습니다”</strong>가 목표입니다.
+        </p>
+        <div class="callout">
+          완벽한 시스템보다, 완성한 것과 남은 갭을 구분하고 우선순위를 말할 수 있는 발표가 더 실무형입니다.
+        </div>
+      </div>
+    </section>
+
+    <h2>1. 우리가 공통으로 완성한 것</h2>
+    <section class="section">
+      <p>
+        아래 흐름은 모든 수강생이 공유하는 기본 골격입니다. 발표에서는 이 전체를 다 깊게 설명하기보다,
+        본인이 선택한 질문과 지표가 이 흐름의 어느 지점에서 만들어졌는지 연결해서 설명하면 됩니다.
+      </p>
+
+      <div class="flow">
+        <div class="node pipeline"><strong>Olist + UX Events</strong><span>주문 · 리뷰 · 행동 이벤트</span></div>
+        <div class="node pipeline"><strong>Kafka</strong><span>topic 3개 · replay</span></div>
+        <div class="node pipeline"><strong>Flink</strong><span>streaming jobs 3개</span></div>
+        <div class="node pipeline"><strong>Paimon</strong><span>L0 · append/upsert</span></div>
+        <div class="node pipeline"><strong>Spark/Iceberg</strong><span>L1/L2 mart</span></div>
+        <div class="node pipeline"><strong>StarRocks/BI</strong><span>OLAP 조회 · 대시보드</span></div>
+      </div>
+
+      <div class="grid-3" style="margin-top: 22px;">
+        <div class="card">
+          <span class="tag teal">Data</span>
+          <h3>데이터</h3>
+          <p>Olist 주문/리뷰 데이터와 사용자 행동 이벤트를 결합해 “리뷰와 구매 행동의 관계”를 분석할 수 있는 시나리오를 만듭니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag orange">Pipeline</span>
+          <h3>파이프라인</h3>
+          <p>Kafka 수집, Flink streaming 적재, Paimon L0 저장, Spark/Iceberg mart 생성, StarRocks/BI 조회까지 연결합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag blue">Operation</span>
+          <h3>운영 검증</h3>
+          <p>Airflow DAG와 task log를 통해 “어디까지 정상인지”를 계층별 증거로 확인합니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <h2>2. 모두 같으면 안 되는 것</h2>
+    <section class="section">
+      <p>
+        기본 프로젝트는 공통이지만, 최종 포트폴리오의 메시지는 달라야 합니다. 같은 대시보드를 보더라도
+        어떤 질문을 잡고, 어떤 지표를 해석하고, 어떤 운영 리스크를 발견했는지에 따라 발표는 충분히 달라질 수 있습니다.
+      </p>
+
+      <div class="grid-3">
+        <div class="card">
+          <span class="tag teal">Question</span>
+          <h3>비즈니스 질문</h3>
+          <p>리뷰를 본 사용자가 구매로 이어졌는가? 부정 리뷰가 많은 카테고리는 이탈이 높은가? 본인이 선택한 질문을 명확히 둡니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag purple">Metrics</span>
+          <h3>지표 해석</h3>
+          <p>BI 숫자를 그대로 읽지 말고, 어떤 테이블과 grain에서 계산된 지표인지 설명합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag green">Evidence</span>
+          <h3>검증 증거</h3>
+          <p>Kafka, Flink, Paimon, Iceberg, StarRocks, Airflow 중 어디에서 어떤 증거를 봤는지 남깁니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag orange">Risk</span>
+          <h3>운영 리스크</h3>
+          <p>count 불일치, append/upsert 차이, cache stale, reset 후 재빌드, 이벤트 이력 소실 같은 리스크를 본인 언어로 정리합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag blue">Roadmap</span>
+          <h3>개선 방향</h3>
+          <p>검증 게이트, 이벤트 bronze 추가, 관계 기반 검증, StarRocks refresh task, WAP 같은 다음 단계를 제안합니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag red">Story</span>
+          <h3>나의 관점</h3>
+          <p>“이 프로젝트에서 내가 가장 중요하게 본 문제는 무엇인가”를 하나의 메시지로 정리합니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <h2>3. 발표 추천 구성</h2>
+    <section class="section">
+      <p>
+        아래 구성은 권장안입니다. 발표 시간이 정해지면 장수를 줄이되, 최소한 “질문 → 구조 → 증거 → 해석 → 개선” 흐름은 유지하는 것이 좋습니다.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 90px;">순서</th>
+              <th style="width: 220px;">슬라이드</th>
+              <th>넣어야 할 내용</th>
+              <th style="width: 220px;">핵심 메시지</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>프로젝트 한 줄 소개</td>
+              <td>Olist 기반 커머스 행동/리뷰/주문 데이터를 이용해 lakehouse + OLAP 파이프라인을 구축했다고 소개합니다.</td>
+              <td>무엇을 만든 프로젝트인가</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>내가 선택한 질문</td>
+              <td>“리뷰를 본 사용자의 구매 전환”, “부정 리뷰와 이탈”, “append/upsert 설계” 등 본인이 집중할 질문을 선언합니다.</td>
+              <td>왜 이 프로젝트가 필요한가</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>전체 아키텍처</td>
+              <td>Kafka → Flink → Paimon → Spark/Iceberg → StarRocks/BI → Airflow 흐름을 그림으로 보여줍니다.</td>
+              <td>데이터가 어디서 어디로 흐르는가</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>데이터 모델과 mart 설계</td>
+              <td>L0 Paimon, L1 clean/current, L2 aggregate mart의 역할과 grain을 설명합니다.</td>
+              <td>count를 읽을 기준은 grain이다</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>BI 결과와 해석</td>
+              <td>대시보드 캡처와 함께 total events, sessions, orders, revenue, review sentiment 등 핵심 지표를 해석합니다.</td>
+              <td>숫자가 어떤 질문에 답하는가</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>계층별 검증 증거</td>
+              <td>Kafka message/offset, Flink RUNNING, Paimon row count, Iceberg mart count, Airflow task log, BI query 결과를 연결합니다.</td>
+              <td>어디까지 정상이라고 말할 수 있는가</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>발견한 리스크와 개선 로드맵</td>
+              <td>현재 구현의 known gap과 다음 개선 우선순위를 정리합니다.</td>
+              <td>실무형 포트폴리오의 설계 판단</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <h2>4. 검증 증거 체크리스트</h2>
+    <section class="section">
+      <p>
+        최종 발표에서 가장 중요한 것은 “돌아갔다”가 아니라 “어떤 증거로 정상이라고 판단했는가”입니다.
+        아래 중 본인이 직접 확인한 것만 발표 자료에 넣으면 됩니다.
+      </p>
+
+      <div class="checklist">
+        <div class="check"><strong>Kafka</strong>topic 3개 존재, message count, offset 증가, key/partition/offset 샘플</div>
+        <div class="check"><strong>Flink</strong>streaming job 3개 RUNNING, checkpoint/records 관찰, task log</div>
+        <div class="check"><strong>Paimon</strong><code>ux_events_bronze</code>, <code>review_current</code>, <code>order_current</code> count 확인</div>
+        <div class="check"><strong>Iceberg</strong>L1/L2 mart 7개 생성, <code>.snapshots</code> 또는 query log 확인</div>
+        <div class="check"><strong>StarRocks/BI</strong>external catalog 조회, dashboard 지표와 mart count 비교</div>
+        <div class="check"><strong>Airflow</strong>DAG task green, build/query/validate task log, 실패 시 어떤 task에서 멈췄는지</div>
+      </div>
+    </section>
+
+    <h2>5. 실무 보강 로드맵은 감점 포인트가 아니라 설계 포인트</h2>
+    <section class="section">
+      <p>
+        완성된 프로젝트에도 갭은 남습니다. 중요한 것은 갭을 숨기는 것이 아니라,
+        <strong>무엇을 알고 있고, 왜 지금은 이 수준으로 두었고, 다음에 어떤 순서로 보강할지</strong>를 설명하는 것입니다.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 200px;">항목</th>
+              <th>현재 상태</th>
+              <th>실무 보강 방향</th>
+              <th style="width: 180px;">발표에서 말할 관점</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>검증 게이트 위치</td>
+              <td>현재는 build 후 검증이 많습니다.</td>
+              <td>staging → validate → publish 또는 WAP 구조로 전환합니다.</td>
+              <td>검증은 서빙 전에 와야 합니다.</td>
+            </tr>
+            <tr>
+              <td>이벤트 이력</td>
+              <td>review/order는 current-state 중심으로 접힙니다.</td>
+              <td>append bronze를 추가해 상태 변경 이력을 보존합니다.</td>
+              <td>current만 있으면 “어떻게 변했나”를 답하기 어렵습니다.</td>
+            </tr>
+            <tr>
+              <td>검증 방식</td>
+              <td>고정 count 기반 검증이 포함되어 있습니다.</td>
+              <td>distinct id, freshness, 입력-출력 관계 같은 불변식 검증으로 확장합니다.</td>
+              <td>샘플 데이터가 바뀌어도 검증이 살아 있어야 합니다.</td>
+            </tr>
+            <tr>
+              <td>StarRocks refresh</td>
+              <td>external catalog cache stale 가능성이 있습니다.</td>
+              <td>DAG에 refresh task를 명시적으로 넣습니다.</td>
+              <td>조회 계층도 운영 대상입니다.</td>
+            </tr>
+            <tr>
+              <td>sentiment 시간 축</td>
+              <td>전 기간 누적 집계 중심입니다.</td>
+              <td><code>as_of_date</code> 또는 snapshot 기준 집계를 추가합니다.</td>
+              <td>추세를 보려면 시간 기준이 필요합니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        발표에서는 “이것도 안 됐습니다”가 아니라 “현재 MVP의 범위는 여기까지이고, 운영형으로 보강하려면 이 순서로 개선합니다”라고 말하면 됩니다.
+      </div>
+    </section>
+
+    <h2>6. 하면 좋은 것과 피해야 할 것</h2>
+    <section class="section">
+      <div class="do-dont">
+        <div class="card ok">
+          <h3>하면 좋은 것</h3>
+          <ul>
+            <li>본인이 선택한 질문을 발표 첫머리에 명확히 말하기</li>
+            <li>BI 캡처만 보여주지 말고, 어떤 mart에서 나온 지표인지 설명하기</li>
+            <li>계층별 검증 증거를 한 장으로 모으기</li>
+            <li>count 불일치를 유실로 단정하지 않고 append/upsert 관점으로 해석하기</li>
+            <li>known gap을 우선순위가 있는 개선 로드맵으로 표현하기</li>
+          </ul>
+        </div>
+
+        <div class="card warn">
+          <h3>피해야 할 것</h3>
+          <ul>
+            <li>명령어 실행 캡처만 나열하고 해석하지 않기</li>
+            <li>공통 파이프라인 전체를 외운 순서대로만 설명하기</li>
+            <li>모든 지표를 다 보여주려다가 핵심 질문이 흐려지기</li>
+            <li>남은 갭을 실패처럼 숨기기</li>
+            <li>새로운 데이터셋으로 급하게 별도 프로젝트를 시작하기</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      문서 목적: 최종 발표 방향을 학생들에게 설명하기 위한 안내 자료입니다. 프로젝트의 기술 기준은 수업 자료와 GitHub 실습 레포를 기준으로 하며, 이 문서는 발표 구성과 포트폴리오 메시지 정리에 집중합니다.
+    </div>
+  </main>
+</body>
+</html>

@@ -38,6 +38,7 @@ cd sessions/05-project-mvp
 | 5차시 | `sessions/05-project-mvp` | 프로젝트 MVP 완성 |
 | 6차시 | `sessions/06-ops-recovery-drills` | 운영 장애 대응 / 복구 드릴 |
 | 7차시 | `sessions/07-quality-serving` | 데이터 품질과 StarRocks Serving |
+| 8차시 | `sessions/08-final-presentation` | 최종 발표 (포트폴리오) |
 
 ## 실습 전 공통 확인
 
