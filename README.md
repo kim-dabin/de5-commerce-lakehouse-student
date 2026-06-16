@@ -36,6 +36,8 @@ cd sessions/05-project-mvp
 | 3차시 | `sessions/03-kafka-producer` | Kafka UX 이벤트 수집 |
 | 4차시 | `sessions/04-flink-paimon` | Flink와 Paimon Bronze |
 | 5차시 | `sessions/05-project-mvp` | 프로젝트 MVP 완성 |
+| 6차시 | `sessions/06-ops-recovery-drills` | 운영 장애 대응 / 복구 드릴 |
+| 7차시 | `sessions/07-quality-serving` | 데이터 품질과 StarRocks Serving |
 
 ## 실습 전 공통 확인
 

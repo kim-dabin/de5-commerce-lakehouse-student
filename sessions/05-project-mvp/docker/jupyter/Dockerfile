@@ -13,7 +13,8 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip \
       "notebook>=7.0,<7.3" \
       "numpy<2" \
       "pandas<2.1" \
-      "pymysql>=1.1,<1.2"
+      "pymysql>=1.1,<1.2" \
+      "great-expectations==1.18.1"
 
 # Custom "PySpark (DE5 Lakehouse)" kernel: catalogs pre-wired via PYSPARK_SUBMIT_ARGS,
 # and a startup script auto-creates `spark`/`sc` so students need no boilerplate.
@@ -29,6 +30,8 @@ ENV HOME=/home/spark
 ENV PYTHONPATH=/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.7-src.zip
 ENV PYSPARK_PYTHON=python3
 ENV PYSPARK_DRIVER_PYTHON=python3
+# 7차시 데이터 품질(Great Expectations): 텔레메트리 외부 전송 비활성화.
+ENV GX_ANALYTICS_ENABLED=false
 
 WORKDIR /workspace
 USER spark

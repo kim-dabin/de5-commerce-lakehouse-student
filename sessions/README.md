@@ -9,6 +9,7 @@
 04-flink-paimon
 05-project-mvp
 06-ops-recovery-drills
+07-quality-serving
 ```
 
 수업 전에는 현재 폴더 어디에서든 `git pull`을 실행해 최신 자료를 받은 뒤, 해당 차시 폴더의 `DOWNLOAD_GUIDE.md`를 확인합니다.
