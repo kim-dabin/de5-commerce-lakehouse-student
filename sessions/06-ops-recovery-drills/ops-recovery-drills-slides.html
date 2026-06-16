@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>6차시 · 장애 대응 드릴 (슬라이드)</title>
+<style>
+  :root {
+    --bg:#0f1b2d; --paper:#16233a; --ink:#eef3f8; --muted:#9fb0c4;
+    --line:#2b3b54; --teal:#36c5b5; --teal-d:#0f766e; --orange:#f0a44a; --orange-d:#b45309;
+    --green:#5fd17a; --green-bg:#16321f; --green-bd:#27632f;
+    --red:#ff8a78; --red-bg:#33191a; --red-bd:#7a2b27;
+    --blue:#7db1ff; --blue-bg:#172339; --blue-bd:#2d4a78;
+    --tealbg:#13302d; --tealbd:#1f5a52; --purple:#b79bf0; --purple-bg:#241a3a;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink); font-family:var(--sans); overflow:hidden; }
+
+  #bar { position:fixed; top:0; left:0; height:5px; background:linear-gradient(90deg,var(--teal),var(--orange)); width:0; z-index:50; transition:width .25s ease; }
+  #counter { position:fixed; bottom:14px; right:20px; font-family:var(--mono); font-size:13px; color:var(--muted); z-index:50; }
+  #hint { position:fixed; bottom:14px; left:20px; font-family:var(--mono); font-size:12px; color:var(--muted); z-index:50; }
+
+  .slide { position:fixed; inset:0; padding:4.4vmin 6vmin 6vmin; display:none; flex-direction:column; }
+  .slide.active { display:flex; }
+
+  .eyebrow { color:var(--teal); font-family:var(--mono); font-size:1.5vmin; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+  .stitle { font-size:5vmin; line-height:1.12; margin:1vmin 0 0; font-weight:800; }
+  .ssub { color:var(--muted); font-size:2.2vmin; margin-top:1.4vmin; max-width:60ch; }
+
+  /* round header */
+  .rhead { display:flex; align-items:center; gap:1.6vmin; flex-wrap:wrap; }
+  .rno { font-family:var(--mono); font-weight:800; font-size:2.6vmin; color:#06121f; background:var(--teal); border-radius:1vmin; padding:.6vmin 1.6vmin; }
+  .rno.ext { background:var(--purple); } .rno.mentor { background:var(--orange); }
+  .rttl { font-size:3.6vmin; font-weight:800; }
+  .badge { font-family:var(--mono); font-size:1.4vmin; font-weight:800; padding:.5vmin 1.3vmin; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+  .rintent { color:var(--muted); font-size:2vmin; margin:1.6vmin 0 .4vmin; max-width:95ch; }
+
+  /* phase grid */
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:1.8vmin; margin-top:2vmin; flex:1; min-height:0; }
+  .box { border:1px solid var(--line); border-radius:1.4vmin; padding:1.8vmin 2vmin; background:var(--paper); display:flex; flex-direction:column; min-height:0; }
+  .box.full { grid-column:1 / -1; }
+  .box h4 { margin:0 0 1vmin; font-family:var(--mono); font-size:1.5vmin; letter-spacing:.05em; text-transform:uppercase; }
+  .box.inject { background:var(--red-bg); border-color:var(--red-bd); } .box.inject h4 { color:var(--red); }
+  .box.observe { background:var(--blue-bg); border-color:var(--blue-bd); } .box.observe h4 { color:var(--blue); }
+  .box.recover { background:var(--green-bg); border-color:var(--green-bd); } .box.recover h4 { color:var(--green); }
+  .box.point { background:var(--tealbg); border-color:var(--tealbd); } .box.point h4 { color:var(--teal); }
+  .box p { margin:.6vmin 0; font-size:1.9vmin; color:var(--ink); }
+  .box .note { color:var(--muted); font-size:1.7vmin; }
+
+  pre { background:#0a1422; border:1px solid var(--line); border-radius:1vmin; padding:1.2vmin 1.6vmin; margin:.6vmin 0; overflow:auto; font-family:var(--mono); font-size:1.85vmin; line-height:1.5; }
+  code { font-family:var(--mono); }
+  .c { color:#7d8aa0; } .g { color:var(--green); } .r { color:var(--red); } .o { color:var(--orange); }
+
+  table { width:100%; border-collapse:collapse; font-size:1.95vmin; margin-top:1.4vmin; }
+  th,td { text-align:left; padding:1vmin 1.4vmin; border-bottom:1px solid var(--line); }
+  th { color:var(--teal); font-size:1.6vmin; }
+  .chips { display:flex; gap:1.4vmin; flex-wrap:wrap; margin-top:3vmin; }
+  .chip { font-family:var(--mono); font-size:1.7vmin; border:1px solid var(--line); border-radius:999px; padding:.8vmin 1.8vmin; color:var(--ink); }
+  .chip b { color:var(--teal); }
+  .quote { font-size:3vmin; font-weight:700; border-left:.6vmin solid var(--teal); padding-left:2.4vmin; margin:4vmin 0; line-height:1.4; }
+  .warn { color:var(--orange); font-size:1.8vmin; margin-top:1.2vmin; }
+  ul.kv { list-style:none; padding:0; margin:.4vmin 0; }
+  ul.kv li { font-size:1.95vmin; margin:.5vmin 0; }
+  b.t { color:var(--teal); } b.gr { color:var(--green); }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="counter"></div>
+<div id="hint">← → / Space 이동 · F 전체화면</div>
+
+<!-- 1. TITLE -->
+<section class="slide">
+  <div class="eyebrow">DE5 · 6차시 · 운영 장애 대응</div>
+  <div class="stitle">장애 대응 / 복구 드릴</div>
+  <div class="quote">"어디까지 정상이고,<br>어디부터 의심해야 하는지 — 증거로 말한다."</div>
+  <div class="ssub">5차시 Olist 레이크하우스 스택을 직접 망가뜨리고 되돌린다. 리듬: <b style="color:var(--ink)">주입 → 증상 관찰 → 원인 가설 → 복구 → 증거 캡처</b></div>
+  <div class="chips">
+    <span class="chip">위치 <b>sessions/05-project-mvp</b></span>
+    <span class="chip">broker <b>2대</b></span>
+    <span class="chip">count <b>16,693 / 1,971 / 2,000</b></span>
+    <span class="chip">mart <b>category_daily=759</b></span>
+  </div>
+</section>
+
+<!-- 2. BASELINE -->
+<section class="slide">
+  <div class="rhead"><span class="rno">0</span><span class="rttl">기준 상태 (Baseline)</span></div>
+  <div class="rintent">수업 시작 전 아래 상태를 맞추고, "지금 정상"을 증거로 확인한다.</div>
+  <div class="grid">
+    <div class="box">
+      <h4>셋업 (sessions/05-project-mvp)</h4>
+<pre><code>docker compose -f docker-compose.lite.yml up -d --build
+./scripts/reset-olist-kafka-topics.sh   <span class="c"># RF=2</span>
+./scripts/reset-olist-paimon.sh
+./scripts/run-flink-olist-paimon-streaming.sh all
+./scripts/produce-olist-{ux,review,order}-*.sh
+./scripts/start-airflow.sh
+./scripts/trigger-airflow-pipeline.sh
+./scripts/ops-baseline-evidence.sh</code></pre>
+    </div>
+    <div class="box point">
+      <h4>정상 기준</h4>
+      <table>
+        <tr><th>계층</th><th>기준값</th></tr>
+        <tr><td>Kafka</td><td>broker 2대, 토픽 RF=2 / Isr 1,2</td></tr>
+        <tr><td>Flink</td><td>3잡 RUNNING</td></tr>
+        <tr><td>Paimon</td><td>16,693 / 1,971 / 2,000</td></tr>
+        <tr><td>Iceberg</td><td>category_daily = 759</td></tr>
+        <tr><td>StarRocks</td><td>category_daily = 759</td></tr>
+        <tr><td>Airflow</td><td>DAG run success</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 3. R1 -->
+<section class="slide">
+  <div class="rhead"><span class="rno">R1</span><span class="rttl">TaskManager 장애</span><span class="badge">checkpoint 복구</span></div>
+  <div class="rintent">디스크/리소스 압박 → kubelet이 TaskManager evict → slot 상실. 로컬은 TaskManager 중지로 그 효과만 재현.</div>
+  <div class="grid">
+    <div class="box inject"><h4>주입</h4><pre><code>./scripts/ops-r1-stop-taskmanager.sh</code></pre><p class="note">실행 잡 3 → 0 (slot 없음)</p></div>
+    <div class="box observe"><h4>관찰</h4><pre><code>./scripts/ops-flink-list-jobs.sh
+./scripts/ops-kafka-topic-offsets.sh ux-events</code></pre><p class="note">RUNNING 0, offset 동향 확인</p></div>
+    <div class="box recover"><h4>복구</h4><pre><code>./scripts/ops-r1-start-taskmanager.sh
+./scripts/ops-flink-list-jobs.sh</code></pre><p class="note"><b class="gr">~15초 내 3잡 자동 복구</b> (checkpoint)</p></div>
+    <div class="box point"><h4>포인트</h4><p>RUNNING 상태만으로 정상 아님. TM·job·checkpoint·count 교차검증.</p><p class="warn">⚠ restart 3회 제한 → TM은 1~2분 내로 짧게. 오래 두면 FAILED → 재제출.</p></div>
+  </div>
+</section>
+
+<!-- 4. R2 -->
+<section class="slide">
+  <div class="rhead"><span class="rno">R2</span><span class="rttl">savepoint 재배포</span><span class="badge">KEEP vs DISCARD</span></div>
+  <div class="rintent">복구는 "다시 실행"이 아니라 "어느 상태에서 이어갈지"를 명시하는 일.</div>
+  <div class="grid">
+    <div class="box inject"><h4>주입 (savepoint로 정지)</h4><pre><code>./scripts/ops-r2-stop-with-savepoint.sh ingest-ux-events</code></pre><p class="note">savepoint 생성 + cancel → 3 → 2잡<br>경로는 .ops-r2-last-savepoint 에 저장</p></div>
+    <div class="box recover"><h4>복구 — KEEP (학생 핸즈온)</h4><pre><code>./scripts/ops-r2-restore-job-from-savepoint.sh ingest-ux-events</code></pre><p class="note"><b class="gr">savepoint에서 이어받기 → 3잡</b></p></div>
+    <div class="box observe"><h4>멘토 시연 — DISCARD</h4><pre><code>./scripts/ops-r2-restore-bad-savepoint-demo.sh ingest-ux-events</code></pre><p class="note">깨진 savepoint → 복구 실패 재현</p></div>
+    <div class="box point"><h4>포인트</h4><p>이어받을 state가 깨졌으면 resume은 복구가 아니라 같은 실패의 반복. 그땐 stateless 재기동 + 원천 재처리.</p></div>
+  </div>
+</section>
+
+<!-- 5. R3 -->
+<section class="slide">
+  <div class="rhead"><span class="rno">R3</span><span class="rttl">Kafka 토픽 내구성 설정 오류 · ISR 데모</span><span class="badge">acks=all 쓰기 실패</span></div>
+  <div class="rintent">실제 사고는 <b>설정값 오입력</b>(retention 등을 min.insync.replicas에 잘못 넣음)에서 착안 — 그 원리를 broker-down으로 <b>재현</b>. acks=all producer는 ISR ≥ min.insync.replicas여야 ack. ISR이 줄면 쓰기 거부(NotEnoughReplicas). 읽기는 정상, 쓰기만 막힘.</div>
+  <div class="grid">
+    <div class="box inject"><h4>주입 (kafka2 정지)</h4><pre><code>./scripts/ops-r3-break-kafka-isr.sh
+./scripts/produce-olist-ux-events.sh --max-events 200</code></pre><p class="note">Isr 2→1</p></div>
+    <div class="box observe"><h4>관찰</h4><pre><code><span class="r">producer failed: 200 delivery failure(s)</span></code></pre><p class="note">NotEnoughReplicasException · offset 안 늘어남 = 입력 막힘</p></div>
+    <div class="box recover"><h4>복구 (kafka2 재기동)</h4><pre><code>./scripts/ops-r3-fix-kafka-isr.sh
+./scripts/produce-olist-ux-events.sh --max-events 200</code></pre><p class="note"><b class="gr">Isr 1→2, produce 성공</b></p></div>
+    <div class="box point"><h4>포인트</h4><p>producer 실패 = 코드 버그가 아니라 topic 내구성 설정 + broker 가용성일 수 있다.</p><p class="warn">⚠ 단일 broker(RF=1)면 재현 안 됨 → kafka2 필수.</p></div>
+  </div>
+</section>
+
+<!-- 6. R4 -->
+<section class="slide">
+  <div class="rhead"><span class="rno">R4</span><span class="rttl">잘못된 payload</span><span class="badge">strict CAST 실패</span></div>
+  <div class="rintent">schemaless source의 타입 깨짐. price="BROKEN_PRICE" 이벤트를 넣고 Flink 반응 관찰.</div>
+  <div class="grid">
+    <div class="box inject"><h4>주입</h4><pre><code>./scripts/ops-r4-produce-bad-ux-event.sh</code></pre></div>
+    <div class="box observe"><h4>관찰 (reset 전에 본다)</h4><pre><code>docker compose logs --tail=120 flink-taskmanager</code></pre><p class="note"><span class="r">NumberFormatException: 'BROKEN_PRICE'</span> · ux job 실패</p></div>
+    <div class="box recover"><h4>복구 (clean reset)</h4><pre><code>reset-olist-kafka-topics → reset-olist-paimon
+→ run-flink ... all → produce ... → trigger DAG</code></pre><p class="note"><b class="gr">16,693 복구</b></p></div>
+    <div class="box point"><h4>포인트</h4><p>Kafka 메시지는 불변. 증거 = raw payload + Flink log. 운영형 fix는 전체 리셋이 아니라 quarantine / tolerant parsing.</p><p class="warn">⚠ 복구가 가장 무거움(~3분).</p></div>
+  </div>
+</section>
+
+<!-- 7. R5 -->
+<section class="slide">
+  <div class="rhead"><span class="rno">R5</span><span class="rttl">Iceberg mart empty</span><span class="badge">DAG 초록 ≠ BI 정상</span></div>
+  <div class="rintent">DAG는 success인데 BI가 읽는 mart가 비어 BI 장애. drop이 아니라 row만 비운다.</div>
+  <div class="grid">
+    <div class="box inject"><h4>주입</h4><pre><code>./scripts/ops-r5-empty-iceberg-mart.sh
+./scripts/query-iceberg-tables.sh</code></pre><p class="note">category_daily <b>759 → 0</b> (Spark·StarRocks), 마지막 DAG run은 여전히 success</p></div>
+    <div class="box observe"><h4>관찰 / 복구 기준점</h4><pre><code>./scripts/ops-r5-find-iceberg-recovery-point.sh</code></pre><p class="note">RECOVERY_POINT_CANDIDATE snapshot_id=… (759)</p></div>
+    <div class="box recover"><h4>복구 A — rebuild</h4><pre><code>./scripts/trigger-airflow-pipeline.sh</code></pre><p class="note"><b class="gr">원천에서 재derive → 759</b></p></div>
+    <div class="box point"><h4>포인트</h4><p>Flink/Paimon 정상 + DAG 초록이어도 mart가 비면 BI 실패.</p><p class="warn">⚠ Streamlit "Analytics Table" 패널은 KeyError로 크래시 → 증거는 SQL의 0 출력으로.</p></div>
+  </div>
+</section>
+
+<!-- 8. R5b -->
+<section class="slide">
+  <div class="rhead"><span class="rno ext">R5b</span><span class="rttl">snapshot rollback</span><span class="badge">확장 · rebuild vs rollback</span></div>
+  <div class="rintent">R5의 두 번째 복구. 원천 재생성 대신 Iceberg snapshot 포인터를 직전 정상으로 즉시 되돌린다.</div>
+  <div class="grid">
+    <div class="box recover"><h4>복구 B — rollback (즉시)</h4><pre><code><span class="c"># find-recovery-point가 준 snapshot_id 사용</span>
+./scripts/ops-r5b-rollback-iceberg-mart.sh &lt;snapshot_id&gt;
+./scripts/query-bi-metrics.sh</code></pre><p class="note"><b class="gr">0 → 759 즉시</b> (Spark·StarRocks)</p></div>
+    <div class="box point full"><h4>포인트 — 두 복구의 트레이드오프</h4>
+      <ul class="kv">
+        <li><b class="t">rebuild (R5 · Airflow):</b> 원천(Paimon)에서 재derive. <b>권위 있는 정답</b>, 느림, 원천 정상 필요.</li>
+        <li><b class="t">rollback (R5b):</b> metadata 포인터만 과거로. <b>즉시</b>, 단 그 snapshot 이후 commit을 전부 폐기 → "그래도 되는 상황"에서만.</li>
+        <li>find-recovery-point = "어느 snapshot까지 정상인가" 확정 → rollback = 그 다음 결정·실행.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 9. R6 -->
+<section class="slide">
+  <div class="rhead"><span class="rno">R6</span><span class="rttl">StarRocks metadata refresh</span><span class="badge">조회 계층 검증</span></div>
+  <div class="rintent">원천은 정상인데 조회 계층이 최신을 못 보는 경우. 독립 파괴가 아니라 serving 계층 검증 라운드.</div>
+  <div class="grid">
+    <div class="box recover"><h4>관찰 / 복구</h4><pre><code>./scripts/query-bi-metrics.sh           <span class="c"># 전</span>
+./scripts/ops-r6-refresh-starrocks-iceberg.sh
+./scripts/query-bi-metrics.sh           <span class="c"># 후</span></code></pre></div>
+    <div class="box point"><h4>포인트</h4><p>이 스택은 조회 시 catalog를 재생성해 거의 항상 fresh.</p><p class="note"><b>refresh 전후 숫자가 같으면 정상</b>("이미 fresh"). 실패가 아니라, "조회 계층은 원천과 별도로 확인한다"는 교훈은 동일. native·StarRocks·BI 3자 비교.</p></div>
+  </div>
+</section>
+
+<!-- 10. R7 -->
+<section class="slide">
+  <div class="rhead"><span class="rno ext">R7</span><span class="rttl">small file & 컴팩션</span><span class="badge">확장</span></div>
+  <div class="rintent">스트리밍/빈번 commit이 작은 파일을 양산 → read amplification. 정기 컴팩션이 운영 유지보수. (별도 opsdemo 테이블, baseline 무관)</div>
+  <div class="grid">
+    <div class="box inject"><h4>주입 (small commit 다수)</h4><pre><code>./scripts/ops-r7-make-small-files.sh</code></pre><p class="note">행 20개 = <b>데이터 파일 20개</b></p></div>
+    <div class="box recover"><h4>복구 (컴팩션)</h4><pre><code>./scripts/ops-r7-compact-small-files.sh
+./scripts/ops-r7-reset-small-files.sh</code></pre><p class="note"><b class="gr">파일 20 → 1</b>, 행 수는 그대로</p></div>
+    <div class="box point full"><h4>포인트</h4><p>작은 파일이 많다 = 데이터가 틀렸다가 아니라 <b>읽기 비용이 샌다</b>. rewrite_data_files는 정답을 안 바꾸고 비용만 줄이는 정기 유지보수.</p></div>
+  </div>
+</section>
+
+<!-- 11. R8 -->
+<section class="slide">
+  <div class="rhead"><span class="rno mentor">R8</span><span class="rttl">Spark driver OOM</span><span class="badge">멘토 시연</span></div>
+  <div class="rintent">collect 과다·스큐로 driver heap OOM. 데이터 손상이 아니라 컴퓨트 자원 장애.</div>
+  <div class="grid">
+    <div class="box inject"><h4>시연</h4><pre><code>./scripts/ops-r8-spark-driver-oom-demo.sh
+<span class="c"># --driver-memory 512m + 큰 collect()</span></code></pre><p class="note"><span class="r">java.lang.OutOfMemoryError: Java heap space</span></p></div>
+    <div class="box point"><h4>포인트</h4><p>복구의 시작은 "메모리 늘리자"가 아니라 <b>"왜 그렇게 많이 필요했나"</b>. collect 회피 / 집계·limit / 스큐 점검.</p><p class="warn">⚠ 무제한 컨테이너 + 공유 16GB → 캡 없는 OOM(특히 Flink TM)은 주입 금지. driver-memory 캡 시연만.</p></div>
+  </div>
+</section>
+
+<!-- 12. WRAP -->
+<section class="slide">
+  <div class="eyebrow">정리</div>
+  <div class="stitle">증거로 남기기</div>
+  <div class="grid" style="margin-top:3vmin;">
+    <div class="box point"><h4>인시던트 노트 (라운드마다)</h4><pre><code>장애:
+관찰한 증상:
+확인한 증거:
+복구 명령/결과:
+<span class="c"># R5만 추가</span>
+복구 기준점 후보 snapshot_id:</code></pre></div>
+    <div class="box"><h4>발표에서 말할 것</h4>
+      <ul class="kv">
+        <li>1. 어떤 장애/리스크를 봤는가</li>
+        <li>2. 어느 계층까지 정상이라 확인했는가</li>
+        <li>3. 어떤 증거로 원인을 좁혔는가</li>
+        <li>4. 어떻게 복구하고 무엇을 다시 확인했는가</li>
+        <li>5. 다음에 어떤 개선으로 줄일 것인가</li>
+      </ul>
+      <p class="note" style="margin-top:1.4vmin;">실패 로그도 정상 산출물. 막히면 명령어·에러를 남긴다.</p>
+    </div>
+  </div>
+  <div class="chips"><span class="chip">마지막 <b>./scripts/ops-baseline-evidence.sh</b></span><span class="chip">상세 <b>ops-recovery-drills-guide.html</b></span></div>
+</section>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar'), counter = document.getElementById('counter');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length-1, n));
+    slides.forEach(function(s,k){ s.classList.toggle('active', k===i); });
+    counter.textContent = (i+1) + ' / ' + slides.length;
+    bar.style.width = ((i+1)/slides.length*100) + '%';
+    location.hash = (i+1);
+  }
+  document.addEventListener('keydown', function(e){
+    if (['ArrowRight','PageDown',' '].indexOf(e.key) !== -1){ e.preventDefault(); show(i+1); }
+    else if (['ArrowLeft','PageUp'].indexOf(e.key) !== -1){ e.preventDefault(); show(i-1); }
+    else if (e.key === 'Home'){ show(0); }
+    else if (e.key === 'End'){ show(slides.length-1); }
+    else if (e.key === 'f' || e.key === 'F'){ if(!document.fullscreenElement){ document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); } else { document.exitFullscreen && document.exitFullscreen(); } }
+  });
+  document.addEventListener('click', function(e){ if (e.target.closest('a')) return; show(i+1); });
+  var start = parseInt((location.hash||'').replace('#',''),10);
+  show(isNaN(start) ? 0 : start-1);
+</script>
+</body>
+</html>
