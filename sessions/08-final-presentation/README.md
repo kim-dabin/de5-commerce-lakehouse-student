@@ -10,6 +10,7 @@
 | 파일 | 용도 | 언제 |
 |---|---|---|
 | `final-presentation-guide.html` | 발표 방향·구성·검증 체크리스트·보강 로드맵 (전체 안내) | 가장 먼저 정독 |
+| `final-presentation-slides.html` | 위 안내를 한 화면씩 보는 개요 슬라이드 (←/→ 이동) | 빠르게 훑을 때 |
 | `EVIDENCE_CARD.md` | 발표 증거를 스택에서 직접 수집하는 명령 모음 | 발표 자료 만들기 전 |
 | `PRESENTATION_TEMPLATE.md` | 7장 발표 슬라이드 빈칸 템플릿 (복사해서 채움) | 슬라이드 작성 시 |
 | `ASSIGNMENT.md` | 최종 제출물 요건과 평가 기준(루브릭) | 제출 전 점검 |
