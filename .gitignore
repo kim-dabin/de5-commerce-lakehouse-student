@@ -18,5 +18,6 @@ Downloads/
 data/raw/olist/*.csv
 data/derived/olist/
 openmetadata/docker-volume/
+**/openmetadata/docker-volume/
 .idea/
 .vscode/

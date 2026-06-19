@@ -85,8 +85,17 @@ notebooks/de5-data-quality.ipynb 의 "3. 의도적 실패 데모" 셀 실행
 
 ## A-4. OpenMetadata로 품질을 보는 관점
 
+OpenMetadata는 별도 선택 스택입니다. Docker 메모리가 부족하면 건너뛰고 멘토 화면으로만 확인합니다.
+
+```bash
+cd ../07-quality-serving/openmetadata
+./start-openmetadata.sh
+./seed-openmetadata-demo.sh
+```
+
 ```text
 OpenMetadata UI: http://localhost:8585
+Login: admin@open-metadata.org / admin
 확인 순서: Table/Profile → Test Suite/Test Case → Lineage impact
 ```
 
@@ -96,6 +105,13 @@ OpenMetadata UI: http://localhost:8585
 GE/Spark = 품질 규칙을 실행하고 PASS/FAIL로 막는 자동 게이트.
 OpenMetadata = 품질 결과를 table/column/owner/lineage와 같이 보는 관찰·협업 계층.
 오늘은 자동 게이트는 run-data-quality-checks.sh, 설명/관찰 화면은 OpenMetadata로 나눠서 본다.
+```
+
+중지:
+
+```bash
+./stop-openmetadata.sh
+cd ../../05-project-mvp
 ```
 
 ---
