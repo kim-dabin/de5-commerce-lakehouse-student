@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PATH="/usr/local/bin:/opt/homebrew/bin:/Applications/Docker.app/Contents/Resources/bin:${PATH}"
+
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.lite.yml}"
 
 if [[ $# -gt 0 ]]; then

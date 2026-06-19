@@ -137,34 +137,36 @@ total_events 16,693 · users 2,875 · sessions 2,875 · products 1,470 · revenu
 UXLog의 purchase는 행동 이벤트다 — 공식 매출로 쓰려면 주문/결제/환불 데이터가 더 필요하다.
 ```
 
-### B-2 옵션. 수업 중 live UX 이벤트 흘리기
+### B-2 옵션. 수업 중 live Olist 이벤트 흘리기
 
 품질 게이트와 baseline count 확인이 끝난 뒤, serving 파트에서만 켭니다.
-`ux-events`는 append fact라서 추가 이벤트가 들어오면 realtime OLAP 숫자가 바로 움직입니다.
+`ux-events`, `review-events`, `order-status-events`를 round-robin으로 천천히 추가합니다.
+UX는 append fact라 realtime row count가 움직이고, review/order는 current-state라 같은 key가 들어오면 최신 상태로 접힙니다.
 
 ```bash
-./scripts/start-live-ux-events.sh             # 기본 3 events/sec, 한 바퀴 replay
-./scripts/live-ux-events-status.sh            # producer 상태 + ux-events offset 확인
+./scripts/start-live-olist-events.sh          # 기본 전체 6 events/sec, 계속 replay
+./scripts/live-olist-events-status.sh         # producer 상태 + 세 topic offset 확인
 ./scripts/query-realtime-olap-metrics.sh      # total_events 변화 확인
 ```
 
 속도를 조절하고 싶으면:
 
 ```bash
-LIVE_UX_RATE_PER_SECOND=10 ./scripts/start-live-ux-events.sh
-LIVE_UX_MAX_EVENTS=300 ./scripts/start-live-ux-events.sh
+LIVE_OLIST_RATE_PER_SECOND=12 ./scripts/start-live-olist-events.sh
+LIVE_OLIST_MAX_EVENTS=300 ./scripts/start-live-olist-events.sh
 ```
 
 중지:
 
 ```bash
-./scripts/stop-live-ux-events.sh
+./scripts/stop-live-olist-events.sh
 ```
 
 포인트:
 
 ```text
-live producer는 review/order가 아니라 ux-events만 추가한다.
+live producer는 세 토픽 모두에 입력을 계속 만든다.
+ux_events_bronze는 append라 row count가 계속 증가한다.
 review_current/order_current는 current-state라 같은 key가 다시 들어오면 row count 변화가 작다.
 품질 게이트 기준값을 다시 맞춰야 하는 구간에서는 live producer를 끈다.
 ```
