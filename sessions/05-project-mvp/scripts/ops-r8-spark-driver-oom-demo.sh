@@ -8,14 +8,27 @@ set -uo pipefail
 # JVM and does not exhaust the shared Mac mini host or other containers.
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.lite.yml}"
 DRIVER_MEM="${DRIVER_MEM:-512m}"
+SPARK_UI_PORT="${SPARK_UI_PORT:-4040}"
+OOM_ROWS="${OOM_ROWS:-5000000}"
+OOM_WIDTH="${OOM_WIDTH:-500}"
+OOM_UI_PAUSE_SECONDS="${OOM_UI_PAUSE_SECONDS:-20}"
 
 echo "Mentor demo: Spark driver OOM with --driver-memory ${DRIVER_MEM}."
 echo "Expect java.lang.OutOfMemoryError / non-zero exit, contained to this spark-submit JVM."
+echo "Spark UI while the job is alive: http://localhost:${SPARK_UI_PORT}"
+echo "The job pauses for ${OOM_UI_PAUSE_SECONDS}s before collect() so you can open the Spark UI."
 echo
 
-docker compose -f "${COMPOSE_FILE}" exec -T spark-client \
+docker compose -f "${COMPOSE_FILE}" exec -T \
+  -e OOM_ROWS="${OOM_ROWS}" \
+  -e OOM_WIDTH="${OOM_WIDTH}" \
+  -e OOM_UI_PAUSE_SECONDS="${OOM_UI_PAUSE_SECONDS}" \
+  spark-client \
   /opt/spark/bin/spark-submit \
   --driver-memory "${DRIVER_MEM}" \
+  --conf spark.ui.enabled=true \
+  --conf spark.ui.port="${SPARK_UI_PORT}" \
+  --conf spark.ui.bindAddress=0.0.0.0 \
   --conf spark.driver.maxResultSize=0 \
   /workspace/labs/08-ops-recovery/spark_driver_oom_demo.py
 STATUS=$?

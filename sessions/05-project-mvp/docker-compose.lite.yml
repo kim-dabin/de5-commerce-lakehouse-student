@@ -348,6 +348,8 @@ services:
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       AWS_REGION: us-east-1
       SPARK_LOCAL_IP: spark-client
+    ports:
+      - "${SPARK_UI_PORT:-4040}:4040"
     volumes:
       - ./labs:/workspace/labs
       - ./data:/workspace/data

@@ -83,6 +83,21 @@ notebooks/de5-data-quality.ipynb 의 "3. 의도적 실패 데모" 셀 실행
 "잡이 실패하지 않음"이 곧 "데이터가 옳다"는 뜻은 아니다.
 ```
 
+## A-4. OpenMetadata로 품질을 보는 관점
+
+```text
+OpenMetadata UI: http://localhost:8585
+확인 순서: Table/Profile → Test Suite/Test Case → Lineage impact
+```
+
+포인트:
+
+```text
+GE/Spark = 품질 규칙을 실행하고 PASS/FAIL로 막는 자동 게이트.
+OpenMetadata = 품질 결과를 table/column/owner/lineage와 같이 보는 관찰·협업 계층.
+오늘은 자동 게이트는 run-data-quality-checks.sh, 설명/관찰 화면은 OpenMetadata로 나눠서 본다.
+```
+
 ---
 
 # Part B — StarRocks Serving / OLAP / BI
@@ -120,6 +135,38 @@ total_events 16,693 · users 2,875 · sessions 2,875 · products 1,470 · revenu
 같은 Olist 데이터라도 Paimon current-state(realtime)와 Iceberg mart(batch)는 grain/시점이 다르다.
 숫자가 다르면 "어느 테이블·어느 grain에서 계산된 지표인가"를 먼저 확인한다.
 UXLog의 purchase는 행동 이벤트다 — 공식 매출로 쓰려면 주문/결제/환불 데이터가 더 필요하다.
+```
+
+### B-2 옵션. 수업 중 live UX 이벤트 흘리기
+
+품질 게이트와 baseline count 확인이 끝난 뒤, serving 파트에서만 켭니다.
+`ux-events`는 append fact라서 추가 이벤트가 들어오면 realtime OLAP 숫자가 바로 움직입니다.
+
+```bash
+./scripts/start-live-ux-events.sh             # 기본 3 events/sec, 한 바퀴 replay
+./scripts/live-ux-events-status.sh            # producer 상태 + ux-events offset 확인
+./scripts/query-realtime-olap-metrics.sh      # total_events 변화 확인
+```
+
+속도를 조절하고 싶으면:
+
+```bash
+LIVE_UX_RATE_PER_SECOND=10 ./scripts/start-live-ux-events.sh
+LIVE_UX_MAX_EVENTS=300 ./scripts/start-live-ux-events.sh
+```
+
+중지:
+
+```bash
+./scripts/stop-live-ux-events.sh
+```
+
+포인트:
+
+```text
+live producer는 review/order가 아니라 ux-events만 추가한다.
+review_current/order_current는 current-state라 같은 key가 다시 들어오면 row count 변화가 작다.
+품질 게이트 기준값을 다시 맞춰야 하는 구간에서는 live producer를 끈다.
 ```
 
 ## B-3. Streamlit BI (2-view) + metadata refresh

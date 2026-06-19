@@ -540,22 +540,38 @@ def batch_tab() -> None:
         st.dataframe(order_status_current, use_container_width=True, hide_index=True)
 
     st.subheader("Analytics Table")
-    st.dataframe(
-        category_daily[
-            [
-                "event_date",
-                "category_code",
-                "product_view_count",
-                "review_impression_count",
-                "review_expand_count",
-                "add_to_cart_count",
-                "purchase_count",
-                "revenue",
-            ]
-        ],
-        use_container_width=True,
-        hide_index=True,
-    )
+    analytics_columns = [
+        "event_date",
+        "category_code",
+        "product_view_count",
+        "review_impression_count",
+        "review_expand_count",
+        "add_to_cart_count",
+        "purchase_count",
+        "revenue",
+    ]
+    if category_daily.empty or not set(analytics_columns).issubset(category_daily.columns):
+        st.warning(
+            "Iceberg category mart가 비어 있거나 expected schema로 조회되지 않습니다. "
+            "R5 시나리오에서는 이 상태가 BI 장애 증거입니다. "
+            "복구 기준 snapshot을 찾은 뒤 rollback 또는 Airflow rebuild를 진행하세요."
+        )
+        st.code(
+            "\n".join(
+                [
+                    "./scripts/ops-r5-find-iceberg-recovery-point.sh",
+                    "./scripts/ops-r5b-rollback-iceberg-mart.sh <snapshot_id>",
+                    "./scripts/query-bi-metrics.sh | grep -i category",
+                ]
+            ),
+            language="bash",
+        )
+    else:
+        st.dataframe(
+            category_daily[analytics_columns],
+            use_container_width=True,
+            hide_index=True,
+        )
 
 
 st.markdown(

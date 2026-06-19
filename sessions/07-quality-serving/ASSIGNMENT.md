@@ -2,7 +2,7 @@
 
 이번 주 과제도 "제출하고 끝"이 아니라 최종 발표 자료로 쌓아갑니다.
 
-7차시 과제는 **(1) 데이터 품질 규칙 한 개를 직접 추가/검증하고, (2) serving 지표 한 개를 grain까지 설명**하는 것입니다.
+7차시 과제는 **(1) 데이터 품질 규칙 한 개를 직접 추가/검증하고, (2) serving 지표 한 개를 grain까지 설명하고, (3) 최종 발표 방향을 1차로 정리**하는 것입니다.
 
 ## 제출물
 
@@ -35,6 +35,31 @@
 7. 발견한 **품질 또는 serving 리스크 1개**와 개선 아이디어 1개.
 8. 최종 발표에서 말할 **한 문장**.
 
+선택: OpenMetadata 화면을 확인했다면, 품질 실패가 났을 때 **어떤 table/column/lineage를 먼저 볼지** 한 줄로 추가해도 됩니다. OpenMetadata는 자동 게이트라기보다 품질 결과를 metadata와 lineage 맥락에서 설명하는 도구로 보면 됩니다.
+
+### D. 최종 프로젝트 방향 초안 (필수)
+
+9. 내가 집중할 비즈니스 질문 1개.
+10. 최종 발표에 넣을 핵심 지표 1개와 출처 테이블.
+11. 내가 강조할 운영 리스크 1개.
+12. 내가 추가하거나 바꿔보고 싶은 것 1개.
+
+예시:
+
+```text
+비즈니스 질문:
+부정 리뷰가 많은 카테고리에서 상세페이지 이탈이 높아지는가?
+
+핵심 지표:
+olist_category_daily의 review_impression_count, product_view_count, purchase_count
+
+운영 리스크:
+review/order를 current-state로만 관리하면 상태 변화 이력이 사라질 수 있음
+
+확장 아이디어:
+review_events_bronze를 append 테이블로 추가해 "어떻게 변했는가"까지 분석
+```
+
 ## 제출 구조 예시
 
 ```text
@@ -55,6 +80,12 @@ C. 마무리
    - 리스크: validate가 모든 mart를 검사하진 않음 → 빈 mart가 통과할 수 있음
    - 개선: run-data-quality-checks.sh를 DAG validate 다음 task로 게이트화
    - 한 문장: "정상은 숫자가 아니라 통과한 규칙으로 말한다."
+
+D. 최종 프로젝트 방향
+   - 비즈니스 질문: 부정 리뷰가 많은 카테고리에서 구매 전환이 낮아지는가?
+   - 핵심 지표: review_impression_count 대비 purchase_count
+   - 운영 리스크: 조회 계층 metadata cache가 stale하면 BI 숫자가 늦게 바뀔 수 있음
+   - 확장 아이디어: StarRocks refresh task를 DAG에 추가
 ```
 
 ## 평가 기준
