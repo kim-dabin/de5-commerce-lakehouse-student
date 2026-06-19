@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PATH="/usr/local/bin:/opt/homebrew/bin:/Applications/Docker.app/Contents/Resources/bin:${PATH}"
+
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.lite.yml}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-de5-lite}"
 RATE="${LIVE_UX_RATE_PER_SECOND:-3}"
@@ -33,23 +35,28 @@ if [[ -n "${running_producers}" ]]; then
   exit 1
 fi
 
-max_args=()
-if [[ "${MAX_EVENTS}" != "0" ]]; then
-  max_args=(--max-events "${MAX_EVENTS}")
-fi
-
 echo "starting live ux producer..."
 echo "rate=${RATE}/sec repeat=${REPEAT} max_events=${MAX_EVENTS}"
 echo "log=${LOG_FILE}"
 
-(
-  ./scripts/produce-olist-ux-events.sh \
-    --repeat "${REPEAT}" \
-    --rate-per-second "${RATE}" \
-    "${max_args[@]}" \
-    --quiet \
-    "$@"
-) >"${LOG_FILE}" 2>&1 &
+if [[ "${MAX_EVENTS}" != "0" ]]; then
+  (
+    ./scripts/produce-olist-ux-events.sh \
+      --repeat "${REPEAT}" \
+      --rate-per-second "${RATE}" \
+      --max-events "${MAX_EVENTS}" \
+      --quiet \
+      "$@"
+  ) >"${LOG_FILE}" 2>&1 &
+else
+  (
+    ./scripts/produce-olist-ux-events.sh \
+      --repeat "${REPEAT}" \
+      --rate-per-second "${RATE}" \
+      --quiet \
+      "$@"
+  ) >"${LOG_FILE}" 2>&1 &
+fi
 
 pid="$!"
 echo "${pid}" > "${PID_FILE}"

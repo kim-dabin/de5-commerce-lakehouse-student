@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PATH="/usr/local/bin:/opt/homebrew/bin:/Applications/Docker.app/Contents/Resources/bin:${PATH}"
+
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.lite.yml}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-de5-lite}"
 RUNTIME_DIR="${RUNTIME_DIR:-.runtime}"
