@@ -91,12 +91,42 @@ OpenMetadata는 별도 선택 스택입니다. Docker 메모리가 부족하면 
 cd ../07-quality-serving/openmetadata
 ./start-openmetadata.sh
 ./seed-openmetadata-demo.sh
+./seed-openmetadata-dq-demo.sh
+```
+
+FAIL 화면까지 보여주고 싶으면 아래를 추가로 실행합니다. 다시 전부 PASS로 돌리려면 옵션 없이 `./seed-openmetadata-dq-demo.sh`를 한 번 더 실행합니다.
+
+```bash
+DQ_DEMO_INCLUDE_FAILURE=true ./seed-openmetadata-dq-demo.sh
+./seed-openmetadata-dq-demo.sh
 ```
 
 ```text
 OpenMetadata UI: http://localhost:8585
 Login: admin@open-metadata.org / admin
-확인 순서: Table/Profile → Test Suite/Test Case → Lineage impact
+확인 순서: Table/Profile → Data Quality/Test Case → Lineage impact
+```
+
+스크립트 역할:
+
+```text
+start-openmetadata.sh
+  OpenMetadata UI/API 스택을 띄운다. 이미 떠 있으면 그대로 통과한다.
+
+seed-openmetadata-demo.sh
+  Kafka topic, Flink/Spark pipeline, table, dashboard 예시 자산을 만들고 lineage를 연결한다.
+  목적: "이 테이블이 어디서 와서 어디로 가는가"를 보여준다.
+
+seed-openmetadata-dq-demo.sh
+  commerce_category_daily에 Test Suite/Test Case/Test Result를 넣는다.
+  목적: "품질 규칙과 PASS/FAIL 결과가 테이블 옆에 어떻게 보이는가"를 보여준다.
+
+DQ_DEMO_INCLUDE_FAILURE=true ./seed-openmetadata-dq-demo.sh
+  실제 데이터를 망가뜨리지 않고, OpenMetadata에 실패 결과만 하나 publish한다.
+  목적: 실패했을 때 Data Quality 화면이 어떻게 달라지는지 보여준다.
+
+stop-openmetadata.sh
+  OpenMetadata 컨테이너를 내린다. 기본은 데이터 볼륨을 남긴다.
 ```
 
 포인트:
@@ -105,6 +135,8 @@ Login: admin@open-metadata.org / admin
 GE/Spark = 품질 규칙을 실행하고 PASS/FAIL로 막는 자동 게이트.
 OpenMetadata = 품질 결과를 table/column/owner/lineage와 같이 보는 관찰·협업 계층.
 오늘은 자동 게이트는 run-data-quality-checks.sh, 설명/관찰 화면은 OpenMetadata로 나눠서 본다.
+seed-openmetadata-dq-demo.sh는 대표 Test Suite/Test Case/Test Result를 넣어 Data Quality 탭을 보여주는 미니 데모다.
+운영에서는 GE action, OpenMetadata Data Quality as Code, Airflow task로 품질 결과 publish를 자동화한다.
 ```
 
 중지:

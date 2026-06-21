@@ -14,6 +14,8 @@
 | `EVIDENCE_CARD.md` | 발표 증거를 스택에서 직접 수집하는 명령 모음 | 발표 자료 만들기 전 |
 | `PRESENTATION_TEMPLATE.md` | 7장 발표 슬라이드 빈칸 템플릿 (복사해서 채움) | 슬라이드 작성 시 |
 | `ASSIGNMENT.md` | 최종 제출물 요건과 평가 기준(루브릭) | 제출 전 점검 |
+| `spark-ui-guide.html` | (보너스) Spark UI·실행 플랜 읽는 법 — HTML 가이드 | 발표 후 실무 미니세션 |
+| `SPARK_UI_GUIDE.md` | 위 보너스의 마크다운 핸드아웃 (EXPLAIN·명령·체크리스트) | 직접 따라할 때 |
 
 ## 발표가 모두 같으면 안 됩니다
 

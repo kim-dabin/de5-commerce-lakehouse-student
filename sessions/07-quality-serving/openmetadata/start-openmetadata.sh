@@ -16,6 +16,22 @@ fail() {
 command -v docker >/dev/null 2>&1 || fail "Docker CLI is not installed."
 docker info >/dev/null 2>&1 || fail "Docker daemon is not running. Start Docker Desktop first."
 
+if curl -fsS "http://localhost:${OM_ADMIN_HOST_PORT}/healthcheck" >/dev/null 2>&1; then
+  cat <<EOF
+OpenMetadata is already running.
+
+UI:
+  http://localhost:${OM_UI_HOST_PORT}
+
+Login:
+  admin@open-metadata.org / admin
+
+Next:
+  ${SCRIPT_DIR}/seed-openmetadata-demo.sh
+EOF
+  exit 0
+fi
+
 echo "Starting OpenMetadata optional stack..."
 docker compose -p "${COMPOSE_PROJECT_NAME}" -f "${COMPOSE_FILE}" up -d
 
