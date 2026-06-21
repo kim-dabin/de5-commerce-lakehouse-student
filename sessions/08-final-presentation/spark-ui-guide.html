@@ -77,7 +77,7 @@
     <span class="chip">Spark UI <b>localhost:4040</b></span>
     <span class="chip">엔진 <b>Spark 3.5.6 (spark-client)</b></span>
     <span class="chip">History Server <b>localhost:18080</b></span>
-    <span class="chip">실패 데모 <b>R8 OOM</b></span>
+    <span class="chip">실패 재현 <b>R8 OOM</b></span>
   </div>
 
   <!-- 0. 여는 법 -->
@@ -86,17 +86,17 @@
 <pre><code><span class="c"># 로컬이면 브라우저에서</span>
 http://localhost:4040
 http://localhost:18080        <span class="c"># History Server</span>
-<span class="c"># 멘토 화면처럼 Mac mini에서 돌리고 맥북에서 볼 때</span>
-http://dbkim.local:4040
-http://dbkim.local:18080
+<span class="c"># 원격 서버나 별도 장비에서 실행한 경우</span>
+http://&lt;host&gt;.local:4040
+http://&lt;host&gt;.local:18080
 <span class="c"># 원격(headless) 호스트면 SSH 포워딩 후 접속</span>
 ssh -L 4040:localhost:4040 &lt;host&gt;</code></pre>
   <div class="callout">오래 들여다보려면 <b>대화형 세션</b>(아래 1번)을 띄워 두세요. 끝난 job을 나중에 보려면 <b>History Server</b>(<code>localhost:18080</code>, 아래 카드 2.5) — 이 스택에 추가했습니다.</div>
 
-  <h2 id="screenshots">0.5 수업에서 캡처로 보여줄 순서</h2>
-  <p>수업에서는 아래 순서로 보여주면 됩니다. 목적은 화면 소개가 아니라, <b>쿼리 하나가 Jobs → SQL/DataFrame → Stages → Executors로 어떻게 이어지는지</b>를 증거로 읽는 것입니다.</p>
+  <h2 id="screenshots">0.5 Spark UI 화면 읽는 순서</h2>
+  <p>아래 순서로 확인하면 됩니다. 목적은 화면 소개가 아니라, <b>쿼리 하나가 Jobs → SQL/DataFrame → Stages → Executors로 어떻게 이어지는지</b>를 증거로 읽는 것입니다.</p>
   <table>
-    <tr><th>화면</th><th>URL</th><th>수업에서 말할 것</th></tr>
+    <tr><th>화면</th><th>URL</th><th>확인할 것</th></tr>
     <tr><td><b>Jobs</b></td><td><code>/jobs/</code></td><td>Spark job이 몇 개 실행됐는지, 어떤 SQL이 어떤 Job/Stage로 쪼개졌는지 본다.</td></tr>
     <tr><td><b>SQL / DataFrame</b></td><td><code>/SQL/</code></td><td>쿼리 단위 실행 계획과 Job ID 연결을 본다. SQL 하나가 여러 Job으로 나뉠 수 있다.</td></tr>
     <tr><td><b>Stages</b></td><td><code>/stages/</code></td><td>stage별 task 수, shuffle read/write, skipped stage를 본다. 병목은 보통 여기서 좁힌다.</td></tr>
@@ -171,7 +171,7 @@ Sort (6)
   <div class="round" id="history">
     <div class="hd"><span class="rno">2.5</span><span class="rtitle">History Server — 끝난 잡 다시 보기</span><span class="badge b-ok">localhost:18080</span></div>
     <div class="phase p-intent"><h4>왜 필요한가</h4>
-      4040은 driver가 사는 동안만 뜨고, 이 스택은 데이터가 작아 잡이 <b>수 초면 끝나</b> 창을 열 새가 없습니다. History Server는 <code>spark.eventLog</code>로 남긴 기록을 읽어 <b>끝난 잡의 UI(SQL plan·Stages·Task·skew)를 나중에 차분히</b> 보여줍니다 — 데모·디버깅엔 이게 4040보다 실용적입니다.</div>
+      4040은 driver가 사는 동안만 뜨고, 이 스택은 데이터가 작아 잡이 <b>수 초면 끝나</b> 창을 열 새가 없습니다. History Server는 <code>spark.eventLog</code>로 남긴 기록을 읽어 <b>끝난 잡의 UI(SQL plan·Stages·Task·skew)를 나중에 차분히</b> 보여줍니다 — 재현·디버깅에는 이 방식이 4040보다 실용적입니다.</div>
     <div class="phase p-observe"><h4>보기</h4>
 <pre><code><span class="c"># §2 명령처럼 eventLog를 켜고 잡을 돌린 뒤</span>
 http://localhost:18080        <span class="c"># 완료된 application 목록 → 클릭하면 4040과 동일한 UI</span></code></pre></div>
@@ -181,8 +181,8 @@ http://localhost:18080        <span class="c"># 완료된 application 목록 →
 
   <!-- 3. 실패 / 리소스 -->
   <div class="round" id="fail">
-    <div class="hd"><span class="rno fail">3</span><span class="rtitle">실패하거나 리소스를 많이 먹을 때</span><span class="badge b-ok">R8 데모</span></div>
-    <div class="phase p-inject"><h4>데모 (멘토) — collect 직전 일부러 멈춰 UI 볼 시간을 준다</h4>
+    <div class="hd"><span class="rno fail">3</span><span class="rtitle">실패하거나 리소스를 많이 먹을 때</span><span class="badge b-ok">R8 재현</span></div>
+    <div class="phase p-inject"><h4>실패 재현 예시 — collect 직전 일부러 멈춰 UI 볼 시간을 준다</h4>
 <pre><code>OOM_UI_PAUSE_SECONDS=40 ./scripts/ops-r8-spark-driver-oom-demo.sh</code></pre>
 <pre><code><span class="c"># pause 동안 Executors 탭: driver/executor 메모리·GC time·active task</span>
 <span class="c"># 이후 collect()로 큰 결과를 driver로 모으면 →</span>

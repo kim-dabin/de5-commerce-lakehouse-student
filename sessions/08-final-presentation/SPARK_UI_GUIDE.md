@@ -1,6 +1,6 @@
 # 보너스 (8차시) — Spark UI · 실행 플랜 읽기
 
-발표가 끝나고, 실무에서 **자주 들여다보는 영역**을 한 번 같이 봅니다. UI 화면 소개가 목적이 아니라,
+최종 발표를 준비하면서, 실무에서 **자주 들여다보는 영역**을 한 번 확인합니다. UI 화면 소개가 목적이 아니라,
 **잡이 느릴 때 어디를 보는지 / stage·task에서 어떤 이상 신호를 잡는지 / 실패하거나 리소스를 많이 먹을 때 원인을 어떻게 좁히는지**가 목적입니다.
 
 ## 0. Spark UI 여는 법
@@ -9,18 +9,18 @@
 - UI는 **driver가 살아있는 동안만** 보입니다. 한 번에 안 뜨면 job이 이미 끝난 것.
 - 오래 들여다보려면 **대화형 세션**을 띄워 두세요(아래 §2). 끝난 job을 나중에 보려면 **History Server `localhost:18080`**(아래 §2.5) — 이 스택에 추가됨.
 
-멘토 화면처럼 Mac mini에서 스택을 띄우고 맥북에서 볼 때는 아래 URL을 씁니다.
+원격 서버나 별도 장비에서 Docker stack을 띄웠다면 `localhost` 대신 해당 호스트 주소를 사용합니다.
 
 ```text
-Live Spark UI     http://dbkim.local:4040
-History Server    http://dbkim.local:18080
+Live Spark UI     http://<host>.local:4040
+History Server    http://<host>.local:18080
 ```
 
-학생 본인 노트북에서 직접 Docker stack을 띄웠다면 `dbkim.local` 대신 `localhost`로 보면 됩니다.
+본인 노트북에서 직접 Docker stack을 띄웠다면 그대로 `localhost`로 보면 됩니다.
 
-## 0.5 수업에서 캡처로 보여줄 순서
+## 0.5 Spark UI 화면 읽는 순서
 
-| 화면 | URL | 수업에서 말할 것 |
+| 화면 | URL | 확인할 것 |
 |---|---|---|
 | Jobs | `/jobs/` | Spark job이 몇 개 실행됐는지, 어떤 SQL이 어떤 Job/Stage로 쪼개졌는지 본다. |
 | SQL / DataFrame | `/SQL/` | 쿼리 단위 실행 계획과 Job ID 연결을 본다. SQL 하나가 여러 Job으로 나뉠 수 있다. |
@@ -111,11 +111,11 @@ http://localhost:18080        # 완료된 application 목록 → 클릭하면 40
 ```
 
 - 잡에 `--conf spark.eventLog.enabled=true --conf spark.eventLog.dir=file:///workspace/data/spark-events` 가 있으면(위 §2 명령처럼) 자동 기록된다.
-- 잡이 너무 빨라 4040을 놓쳤어도 18080에서 같은 plan·stages·task를 본다 — 데모/디버깅에 이게 4040보다 실용적이다.
+- 잡이 너무 빨라 4040을 놓쳤어도 18080에서 같은 plan·stages·task를 본다 — 재현/디버깅에는 이 방식이 4040보다 실용적이다.
 
 ## 3. 실패하거나 리소스를 많이 먹을 때
 
-데모(멘토): 6차시 R8 — collect 직전 **일부러 멈춰서 UI를 볼 시간**을 줍니다.
+실패 재현 예시: 6차시 R8 — collect 직전 **일부러 멈춰서 UI를 볼 시간**을 줍니다.
 
 ```bash
 OOM_UI_PAUSE_SECONDS=40 ./scripts/ops-r8-spark-driver-oom-demo.sh
