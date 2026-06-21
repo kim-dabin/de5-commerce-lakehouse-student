@@ -39,9 +39,12 @@ Sort (6)
 ## 2. 느릴 때 — Spark UI 어디를 보나
 
 오래 보려면 대화형 세션을 띄우면 4040이 계속 살아 있습니다.
+직접 `spark-sql`을 실행할 때는 Iceberg jar가 자동으로 붙지 않으므로 `--packages`를 반드시 넣습니다.
+빠르게 EXPLAIN만 볼 때는 §1처럼 `./scripts/run-spark-iceberg-sql.sh` wrapper를 쓰는 것이 안전합니다.
 
 ```bash
 docker compose -f docker-compose.lite.yml exec spark-client /opt/spark/bin/spark-sql \
+  --packages "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.11.0,org.apache.iceberg:iceberg-aws-bundle:1.11.0" \
   --conf spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions \
   --conf spark.sql.catalog.iceberg_lake=org.apache.iceberg.spark.SparkCatalog \
   --conf spark.sql.catalog.iceberg_lake.type=rest \
@@ -50,10 +53,16 @@ docker compose -f docker-compose.lite.yml exec spark-client /opt/spark/bin/spark
   --conf spark.sql.catalog.iceberg_lake.io-impl=org.apache.iceberg.aws.s3.S3FileIO \
   --conf spark.sql.catalog.iceberg_lake.s3.endpoint=http://minio:9000 \
   --conf spark.sql.catalog.iceberg_lake.s3.path-style-access=true \
+  --conf spark.sql.catalog.iceberg_lake.client.region=us-east-1 \
+  --conf spark.sql.session.timeZone=UTC \
+  --conf spark.sql.cli.print.header=true \
   --conf spark.eventLog.enabled=true \
   --conf spark.eventLog.dir=file:///workspace/data/spark-events
 -- 세션 유지 중엔 http://localhost:4040 라이브 UI, 종료 후엔 http://localhost:18080(History Server)에서 같은 잡을 다시 본다.
 ```
+
+`ClassNotFoundException: org.apache.iceberg.spark.SparkCatalog` 또는 `IcebergSparkSessionExtensions`가 보이면 Iceberg package가 빠진 것입니다.
+이 경우 직접 명령을 고치기보다 wrapper 명령을 먼저 확인하세요.
 
 - **SQL / DataFrame 탭**: 쿼리별 플랜 + 노드별 소요시간·행수. 어느 노드가 오래 걸리나.
 - **Stages 탭**: 느린 stage 클릭 → Task 분포를 본다.
