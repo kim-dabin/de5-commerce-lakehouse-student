@@ -5,6 +5,10 @@ SQL_FILE="${1:?SQL file path is required}"
 ICEBERG_VERSION="${ICEBERG_VERSION:-1.11.0}"
 SPARK_PACKAGES="${SPARK_PACKAGES:-org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:${ICEBERG_VERSION},org.apache.iceberg:iceberg-aws-bundle:${ICEBERG_VERSION}}"
 
+WORK_DIR="$(mktemp -d /tmp/de5-spark-sql-XXXXXX)"
+trap 'rm -rf "${WORK_DIR}"' EXIT
+cd "${WORK_DIR}"
+
 /opt/spark/bin/spark-sql \
   --packages "${SPARK_PACKAGES}" \
   --conf "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions" \
