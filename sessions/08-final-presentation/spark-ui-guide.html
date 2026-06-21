@@ -52,6 +52,12 @@
   .p-point { background: var(--teal-soft); border-color: #b9e0db; } .p-point h4 { color: var(--teal-dark); }
   .callout { border-left: 4px solid var(--orange); background: var(--orange-soft); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 14.5px; }
   .callout.warn { border-color: var(--red); background: var(--red-soft); }
+  .shot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
+  figure.shot { margin: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: 0 8px 22px rgba(23,32,51,.08); }
+  figure.shot img { display: block; width: 100%; height: auto; }
+  figure.shot figcaption { padding: 10px 12px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); }
+  figure.shot.wide { grid-column: 1 / -1; }
+  @media (max-width: 820px) { .shot-grid { grid-template-columns: 1fr; } figure.shot.wide { grid-column: auto; } }
   footer { margin-top: 50px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
   .small { font-size: 13px; color: var(--muted); }
 </style>
@@ -79,9 +85,31 @@
   <p>spark-client에서 Spark job이 돌면 Spark UI가 <code>4040</code>에 뜹니다. UI는 <b>driver가 살아있는 동안만</b> 보입니다 — 한 번에 안 뜨면 job이 이미 끝난 것입니다.</p>
 <pre><code><span class="c"># 로컬이면 브라우저에서</span>
 http://localhost:4040
+http://localhost:18080        <span class="c"># History Server</span>
+<span class="c"># 멘토 화면처럼 Mac mini에서 돌리고 맥북에서 볼 때</span>
+http://dbkim.local:4040
+http://dbkim.local:18080
 <span class="c"># 원격(headless) 호스트면 SSH 포워딩 후 접속</span>
 ssh -L 4040:localhost:4040 &lt;host&gt;</code></pre>
   <div class="callout">오래 들여다보려면 <b>대화형 세션</b>(아래 1번)을 띄워 두세요. 끝난 job을 나중에 보려면 <b>History Server</b>(<code>localhost:18080</code>, 아래 카드 2.5) — 이 스택에 추가했습니다.</div>
+
+  <h2 id="screenshots">0.5 수업에서 캡처로 보여줄 순서</h2>
+  <p>수업에서는 아래 순서로 보여주면 됩니다. 목적은 화면 소개가 아니라, <b>쿼리 하나가 Jobs → SQL/DataFrame → Stages → Executors로 어떻게 이어지는지</b>를 증거로 읽는 것입니다.</p>
+  <table>
+    <tr><th>화면</th><th>URL</th><th>수업에서 말할 것</th></tr>
+    <tr><td><b>Jobs</b></td><td><code>/jobs/</code></td><td>Spark job이 몇 개 실행됐는지, 어떤 SQL이 어떤 Job/Stage로 쪼개졌는지 본다.</td></tr>
+    <tr><td><b>SQL / DataFrame</b></td><td><code>/SQL/</code></td><td>쿼리 단위 실행 계획과 Job ID 연결을 본다. SQL 하나가 여러 Job으로 나뉠 수 있다.</td></tr>
+    <tr><td><b>Stages</b></td><td><code>/stages/</code></td><td>stage별 task 수, shuffle read/write, skipped stage를 본다. 병목은 보통 여기서 좁힌다.</td></tr>
+    <tr><td><b>Executors</b></td><td><code>/executors/</code></td><td>driver/executor 메모리, task time, GC time, shuffle 총량을 본다. OOM/GC 의심 때 본다.</td></tr>
+    <tr><td><b>History Server</b></td><td><code>:18080</code></td><td>driver가 끝난 뒤에도 event log로 완료된 Spark UI를 다시 본다.</td></tr>
+  </table>
+  <div class="shot-grid">
+    <figure class="shot"><img src="assets/spark-ui-live-jobs.png" alt="Spark UI Jobs 탭 캡처"><figcaption><b>Jobs</b> — completed job 수, SQL 설명, stage/task 성공 개수를 먼저 본다.</figcaption></figure>
+    <figure class="shot"><img src="assets/spark-ui-live-sql.png" alt="Spark UI SQL DataFrame 탭 캡처"><figcaption><b>SQL / DataFrame</b> — 쿼리 하나가 어떤 Job ID로 실행됐는지 연결한다.</figcaption></figure>
+    <figure class="shot"><img src="assets/spark-ui-live-stages.png" alt="Spark UI Stages 탭 캡처"><figcaption><b>Stages</b> — task 수, shuffle read/write, skipped stage로 병목 후보를 좁힌다.</figcaption></figure>
+    <figure class="shot"><img src="assets/spark-ui-live-executors.png" alt="Spark UI Executors 탭 캡처"><figcaption><b>Executors</b> — task time, GC time, memory, shuffle 총량을 본다.</figcaption></figure>
+    <figure class="shot wide"><img src="assets/spark-history-server.png" alt="Spark History Server 캡처"><figcaption><b>History Server</b> — 4040을 놓쳐도 완료된 application을 다시 열어 같은 UI를 본다.</figcaption></figure>
+  </div>
 
   <!-- 1. 실행 플랜 -->
   <div class="round" id="plan">

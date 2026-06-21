@@ -9,6 +9,37 @@
 - UI는 **driver가 살아있는 동안만** 보입니다. 한 번에 안 뜨면 job이 이미 끝난 것.
 - 오래 들여다보려면 **대화형 세션**을 띄워 두세요(아래 §2). 끝난 job을 나중에 보려면 **History Server `localhost:18080`**(아래 §2.5) — 이 스택에 추가됨.
 
+멘토 화면처럼 Mac mini에서 스택을 띄우고 맥북에서 볼 때는 아래 URL을 씁니다.
+
+```text
+Live Spark UI     http://dbkim.local:4040
+History Server    http://dbkim.local:18080
+```
+
+학생 본인 노트북에서 직접 Docker stack을 띄웠다면 `dbkim.local` 대신 `localhost`로 보면 됩니다.
+
+## 0.5 수업에서 캡처로 보여줄 순서
+
+| 화면 | URL | 수업에서 말할 것 |
+|---|---|---|
+| Jobs | `/jobs/` | Spark job이 몇 개 실행됐는지, 어떤 SQL이 어떤 Job/Stage로 쪼개졌는지 본다. |
+| SQL / DataFrame | `/SQL/` | 쿼리 단위 실행 계획과 Job ID 연결을 본다. SQL 하나가 여러 Job으로 나뉠 수 있다. |
+| Stages | `/stages/` | stage별 task 수, shuffle read/write, skipped stage를 본다. 병목은 보통 여기서 좁힌다. |
+| Executors | `/executors/` | driver/executor 메모리, task time, GC time, shuffle 총량을 본다. OOM/GC 의심 때 본다. |
+| History Server | `:18080` | driver가 끝난 뒤에도 event log로 완료된 Spark UI를 다시 본다. |
+
+실제 캡처:
+
+![Spark UI Jobs](assets/spark-ui-live-jobs.png)
+
+![Spark UI SQL DataFrame](assets/spark-ui-live-sql.png)
+
+![Spark UI Stages](assets/spark-ui-live-stages.png)
+
+![Spark UI Executors](assets/spark-ui-live-executors.png)
+
+![Spark History Server](assets/spark-history-server.png)
+
 ## 1. 실행 플랜 읽기 — `EXPLAIN`
 
 ```bash
