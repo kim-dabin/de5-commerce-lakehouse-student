@@ -61,6 +61,10 @@ def request_json(
     return json.loads(body) if body else {}
 
 
+def is_not_found(exc: Exception) -> bool:
+    return " failed 404:" in str(exc)
+
+
 def get_token() -> str:
     password = base64.b64encode(ADMIN_PASSWORD.encode("utf-8")).decode("ascii")
     response = request_json(
@@ -79,6 +83,10 @@ def safe_get(path: str, token: str) -> dict[str, Any] | None:
         return request_json(path, token=token)
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
+            return None
+        raise
+    except RuntimeError as exc:
+        if is_not_found(exc):
             return None
         raise
 
