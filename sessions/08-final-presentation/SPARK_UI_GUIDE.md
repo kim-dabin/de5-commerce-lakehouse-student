@@ -7,7 +7,7 @@
 
 - spark-client에서 Spark job이 돌면 Spark UI가 **4040**에 뜹니다 → `http://localhost:4040`
 - UI는 **driver가 살아있는 동안만** 보입니다. 한 번에 안 뜨면 job이 이미 끝난 것.
-- 오래 들여다보려면 **대화형 세션**을 띄워 두세요(아래 §2). 끝난 job 분석은 **History Server**가 필요(이 스택엔 미설정).
+- 오래 들여다보려면 **대화형 세션**을 띄워 두세요(아래 §2). 끝난 job을 나중에 보려면 **History Server `localhost:18080`**(아래 §2.5) — 이 스택에 추가됨.
 
 ## 1. 실행 플랜 읽기 — `EXPLAIN`
 
@@ -49,8 +49,10 @@ docker compose -f docker-compose.lite.yml exec spark-client /opt/spark/bin/spark
   --conf spark.sql.catalog.iceberg_lake.warehouse=s3://warehouse/ \
   --conf spark.sql.catalog.iceberg_lake.io-impl=org.apache.iceberg.aws.s3.S3FileIO \
   --conf spark.sql.catalog.iceberg_lake.s3.endpoint=http://minio:9000 \
-  --conf spark.sql.catalog.iceberg_lake.s3.path-style-access=true
--- 세션이 열린 채 유지됨 → 그 사이 http://localhost:4040 을 본다. 쿼리를 실행하면 UI에 쌓인다.
+  --conf spark.sql.catalog.iceberg_lake.s3.path-style-access=true \
+  --conf spark.eventLog.enabled=true \
+  --conf spark.eventLog.dir=file:///workspace/data/spark-events
+-- 세션 유지 중엔 http://localhost:4040 라이브 UI, 종료 후엔 http://localhost:18080(History Server)에서 같은 잡을 다시 본다.
 ```
 
 - **SQL / DataFrame 탭**: 쿼리별 플랜 + 노드별 소요시간·행수. 어느 노드가 오래 걸리나.
@@ -59,6 +61,17 @@ docker compose -f docker-compose.lite.yml exec spark-client /opt/spark/bin/spark
   - **Shuffle Read/Write**가 큰 stage = 셔플 병목.
   - **Spill (Memory/Disk)**가 있으면 = 메모리 부족으로 디스크에 흘림 = 느려짐.
 - **Jobs 탭**: 어느 job/stage에 시간이 쌓이나(전체 그림).
+
+## 2.5 History Server — 끝난 잡 다시 보기 (`localhost:18080`)
+
+4040은 driver가 사는 동안만 뜨고, 이 스택은 데이터가 작아 잡이 수 초면 끝나 창을 열 새가 없다. **History Server**는 `spark.eventLog`로 남긴 기록을 읽어 **끝난 잡의 UI(SQL plan·Stages·Task·skew)를 나중에 차분히** 보여준다.
+
+```text
+http://localhost:18080        # 완료된 application 목록 → 클릭하면 4040과 동일한 UI
+```
+
+- 잡에 `--conf spark.eventLog.enabled=true --conf spark.eventLog.dir=file:///workspace/data/spark-events` 가 있으면(위 §2 명령처럼) 자동 기록된다.
+- 잡이 너무 빨라 4040을 놓쳤어도 18080에서 같은 plan·stages·task를 본다 — 데모/디버깅에 이게 4040보다 실용적이다.
 
 ## 3. 실패하거나 리소스를 많이 먹을 때
 
