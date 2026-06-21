@@ -131,6 +131,66 @@ DAG_ID=de5_olist_wap_staging_publish_pipeline ./scripts/trigger-airflow-pipeline
 
 이 DAG는 Iceberg branch fast-forward를 직접 쓰는 구현은 아닙니다. 학생 실습 환경에서는 이해와 재현이 쉬운 `staging namespace` 방식으로 WAP의 핵심인 "검증 전 데이터는 serving에 노출하지 않는다"를 보여줍니다.
 
+## Iceberg branch WAP DAG
+
+Iceberg native branch를 쓰는 WAP 예제도 하나 제공합니다.
+
+```text
+de5_olist_iceberg_branch_wap_category_daily
+```
+
+이 DAG는 모든 mart를 한 번에 처리하지 않고, Gold mart 하나만 대상으로 잡습니다.
+
+```text
+iceberg_lake.analytics.olist_category_daily
+```
+
+이 테이블을 고른 이유는 `olist_category_daily`가 L1이 아니라 실제 Gold mart이기 때문입니다.
+
+계층을 구분하면 아래와 같습니다.
+
+```text
+L1 clean/current
+- olist_ux_events_clean
+- olist_review_current
+- olist_order_current
+
+Gold mart / serving
+- olist_event_type_daily
+- olist_funnel_daily
+- olist_category_daily
+- olist_review_sentiment_by_category
+```
+
+즉 `review_current`, `order_current`는 mart가 아니라 분석이 신뢰하고 쓸 수 있게 만든 current-state 테이블입니다. BI 질문에 바로 답하도록 날짜/카테고리/이벤트 타입 단위로 집계한 테이블이 Gold mart입니다.
+
+branch WAP DAG의 흐름은 아래와 같습니다.
+
+```text
+1. analytics_branch_stage namespace에 mart를 먼저 씁니다.
+2. analytics.olist_category_daily 테이블에 audit branch를 만듭니다.
+3. staging 결과를 main이 아니라 audit branch에 씁니다.
+4. branch count와 staging count가 같은지 검증합니다.
+5. 통과하면 Iceberg fast_forward로 main을 audit branch로 이동합니다.
+6. main count가 branch count와 같은지 다시 확인합니다.
+```
+
+실행은 다음처럼 합니다.
+
+```bash
+DAG_ID=de5_olist_iceberg_branch_wap_category_daily ./scripts/trigger-airflow-pipeline.sh
+```
+
+수업에서 말할 핵심은 이겁니다.
+
+```text
+staging WAP는 namespace 단위로 이해하기 쉬운 구현이고,
+Iceberg branch WAP는 table 단위로 Iceberg가 제공하는 native 구현입니다.
+
+둘 다 목적은 같습니다.
+검증 전 데이터가 BI serving main에 노출되지 않게 하는 것입니다.
+```
+
 ## 기대 검증값
 
 ### Paimon
